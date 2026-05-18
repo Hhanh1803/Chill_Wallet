@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "136211331939",
+    "project_id": "smartexpensemanager-91790",
+    "storage_bucket": "smartexpensemanager-91790.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:136211331939:android:2eb768eaf643bcba107156",
+        "android_client_info": {
+          "package_name": "com.dacs3.smartmoney"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOWV7bVkrubuuXUKesKUfEE_UXHa15uQ4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
