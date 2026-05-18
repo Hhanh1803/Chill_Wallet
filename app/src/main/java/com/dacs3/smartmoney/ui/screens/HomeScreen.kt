@@ -139,16 +139,6 @@ fun HomeScreen(
                     }
                 )
             }
-        },
-        floatingActionButton = {
-            LargeFloatingActionButton(
-                onClick = onNavigateToAdd,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = Color.White,
-                shape = CircleShape
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Thêm", modifier = Modifier.size(36.dp))
-            }
         }
     ) { paddingValues ->
         if (transactionToDelete != null) {

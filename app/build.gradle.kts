@@ -64,4 +64,10 @@ dependencies {
 
     // BẮT BUỘC: Thêm dòng này để Firebase không làm văng App khi dùng Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+
+    // DataStore for Settings
+    implementation(libs.androidx.datastore.preferences)
+
+    // Image loading
+    implementation(libs.coil.compose)
 }

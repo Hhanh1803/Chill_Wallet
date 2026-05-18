@@ -5,13 +5,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material3.*
@@ -27,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
+import com.dacs3.smartmoney.data.PreferenceManager
 import com.dacs3.smartmoney.ui.navigation.Screen
 import com.dacs3.smartmoney.ui.screens.*
 import com.dacs3.smartmoney.ui.theme.*
@@ -38,7 +40,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            ChillWalletTheme {
+            val preferenceManager = remember { PreferenceManager(applicationContext) }
+            val isDarkMode by preferenceManager.isDarkMode.collectAsState(initial = false)
+
+            ChillWalletTheme(darkTheme = isDarkMode) {
                 val navController = rememberNavController()
                 val transactionViewModel: TransactionViewModel = viewModel()
 
@@ -117,6 +122,20 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     }
+                    composable(Screen.Settings.route) {
+                        MainScaffold(navController) { onOpenDrawer ->
+                            SettingsScreen(
+                                onOpenDrawer = onOpenDrawer
+                            )
+                        }
+                    }
+                    composable(Screen.Profile.route) {
+                        MainScaffold(navController) { onOpenDrawer ->
+                            ProfileScreen(
+                                onOpenDrawer = onOpenDrawer
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -132,6 +151,14 @@ fun MainScaffold(
     val scope = rememberCoroutineScope()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+
+    val bottomNavItems = listOf(
+        Screen.Home,
+        Screen.Stats,
+        Screen.Add,
+        Screen.Budget,
+        Screen.CategoryManagement
+    )
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -157,61 +184,21 @@ fun MainScaffold(
                     
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    DrawerMenuItem(
-                        label = "Lịch sử",
-                        icon = Icons.Default.History,
-                        selected = currentDestination?.hierarchy?.any { it.route == Screen.Home.route } == true,
-                        onClick = {
-                            scope.launch { drawerState.close() }
-                            navController.navigate(Screen.Home.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
+                    listOf(Screen.Profile, Screen.Home, Screen.Stats, Screen.Budget, Screen.CategoryManagement, Screen.Settings).forEach { screen ->
+                        DrawerMenuItem(
+                            label = screen.title,
+                            icon = screen.icon ?: Icons.Default.Menu,
+                            selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                            onClick = {
+                                scope.launch { drawerState.close() }
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
-                        }
-                    )
-
-                    DrawerMenuItem(
-                        label = "Thống kê",
-                        icon = Icons.Default.PieChart,
-                        selected = currentDestination?.hierarchy?.any { it.route == Screen.Stats.route } == true,
-                        onClick = {
-                            scope.launch { drawerState.close() }
-                            navController.navigate(Screen.Stats.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        }
-                    )
-
-                    DrawerMenuItem(
-                        label = "Ngân sách",
-                        icon = Icons.Default.AccountBalanceWallet,
-                        selected = currentDestination?.hierarchy?.any { it.route == Screen.Budget.route } == true,
-                        onClick = {
-                            scope.launch { drawerState.close() }
-                            navController.navigate(Screen.Budget.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        }
-                    )
-
-                    DrawerMenuItem(
-                        label = "Danh mục",
-                        icon = Icons.Default.Category,
-                        selected = currentDestination?.hierarchy?.any { it.route == Screen.CategoryManagement.route } == true,
-                        onClick = {
-                            scope.launch { drawerState.close() }
-                            navController.navigate(Screen.CategoryManagement.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        }
-                    )
+                        )
+                    }
 
                     Spacer(modifier = Modifier.weight(1f))
 
@@ -234,7 +221,86 @@ fun MainScaffold(
             }
         }
     ) {
-        content { scope.launch { drawerState.open() } }
+        Scaffold(
+            bottomBar = {
+                NavigationBar(
+                    containerColor = Color.White,
+                    tonalElevation = 8.dp,
+                    modifier = Modifier.clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                ) {
+                    bottomNavItems.forEach { screen ->
+                        val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+                        
+                        if (screen == Screen.Add) {
+                            // Nút Thêm ở chính giữa với giao diện đặc biệt
+                            NavigationBarItem(
+                                icon = {
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = PinkPrimary,
+                                        modifier = Modifier.size(48.dp),
+                                        shadowElevation = 4.dp
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                imageVector = Icons.Default.Add,
+                                                contentDescription = "Thêm",
+                                                tint = Color.White,
+                                                modifier = Modifier.size(28.dp)
+                                            )
+                                        }
+                                    }
+                                },
+                                label = { Text("Thêm", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = PinkPrimary) },
+                                selected = false,
+                                onClick = { navController.navigate(Screen.Add.route) },
+                                colors = NavigationBarItemDefaults.colors(
+                                    indicatorColor = Color.Transparent
+                                )
+                            )
+                        } else {
+                            NavigationBarItem(
+                                icon = { 
+                                    screen.icon?.let { 
+                                        Icon(
+                                            imageVector = it, 
+                                            contentDescription = screen.title,
+                                            modifier = Modifier.size(24.dp)
+                                        ) 
+                                    } 
+                                },
+                                label = { 
+                                    Text(
+                                        screen.title, 
+                                        fontSize = 10.sp,
+                                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+                                    ) 
+                                },
+                                selected = selected,
+                                onClick = {
+                                    navController.navigate(screen.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
+                                colors = NavigationBarItemDefaults.colors(
+                                    selectedIconColor = PinkPrimary,
+                                    selectedTextColor = PinkPrimary,
+                                    unselectedIconColor = Color.Gray,
+                                    unselectedTextColor = Color.Gray,
+                                    indicatorColor = PinkLight.copy(alpha = 0.5f)
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        ) { innerPadding ->
+            Box(modifier = Modifier.padding(innerPadding)) {
+                content { scope.launch { drawerState.open() } }
+            }
+        }
     }
 }
 
