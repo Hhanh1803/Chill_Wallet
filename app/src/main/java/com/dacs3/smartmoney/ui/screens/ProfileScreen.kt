@@ -1,7 +1,6 @@
 package com.dacs3.smartmoney.ui.screens
 
 import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -17,7 +16,6 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Menu
@@ -36,10 +34,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.dacs3.smartmoney.R
 import com.dacs3.smartmoney.ui.theme.PinkPrimary
 import com.dacs3.smartmoney.ui.theme.SoftGray
 import com.google.firebase.auth.FirebaseAuth
@@ -48,7 +48,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -120,7 +119,7 @@ fun ProfileScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDatePicker = false }) {
-                    Text("Hủy", color = PinkPrimary)
+                    Text(stringResource(R.string.cancel), color = PinkPrimary)
                 }
             }
         ) {
@@ -138,7 +137,7 @@ fun ProfileScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Hồ sơ cá nhân", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.profile_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onOpenDrawer) {
                         Icon(Icons.Default.Menu, contentDescription = "Menu")
@@ -149,14 +148,20 @@ fun ProfileScreen(
                         IconButton(onClick = {
                             scope.launch {
                                 try {
-                                    // 1. Cập nhật Firebase Auth (Tên và Ảnh)
+                                    // 1. Kiểm tra dữ liệu
+                                    if (phoneNumber.isNotEmpty() && !android.util.Patterns.PHONE.matcher(phoneNumber).matches()) {
+                                        snackbarHostState.showSnackbar(context.getString(R.string.error_invalid_phone))
+                                        return@launch
+                                    }
+
+                                    // 2. Cập nhật Firebase Auth (Tên và Ảnh)
                                     val profileUpdates = userProfileChangeRequest {
                                         this.displayName = displayName
                                         this.photoUri = selectedImageUri
                                     }
                                     user?.updateProfile(profileUpdates)?.await()
 
-                                    // 2. Cập nhật Firestore (Các trường còn lại)
+                                    // 3. Cập nhật Firestore (Các trường còn lại)
                                     val userData = hashMapOf(
                                         "displayName" to displayName,
                                         "phoneNumber" to phoneNumber,
@@ -172,7 +177,7 @@ fun ProfileScreen(
                                         db.collection("users").document(uid).set(userData).await()
                                     }
 
-                                    snackbarHostState.showSnackbar("Cập nhật hồ sơ thành công!")
+                                    snackbarHostState.showSnackbar(context.getString(R.string.update_success))
                                     isEditing = false
                                 } catch (e: Exception) {
                                     snackbarHostState.showSnackbar("Lỗi: ${e.message}")
@@ -183,7 +188,7 @@ fun ProfileScreen(
                         }
                     } else {
                         TextButton(onClick = { isEditing = true }) {
-                            Text("Sửa", color = PinkPrimary)
+                            Text(stringResource(R.string.edit), color = PinkPrimary)
                         }
                     }
                 },
@@ -265,7 +270,7 @@ fun ProfileScreen(
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     Text(
-                        text = "Thông tin cơ bản",
+                        text = stringResource(R.string.basic_info),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black,
@@ -273,7 +278,7 @@ fun ProfileScreen(
                     )
 
                     ProfileField(
-                        label = "Họ và tên",
+                        label = stringResource(R.string.full_name),
                         value = displayName,
                         icon = Icons.Default.Person,
                         isEditing = isEditing,
@@ -283,7 +288,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     ProfileField(
-                        label = "Email",
+                        label = stringResource(R.string.email),
                         value = email,
                         icon = Icons.Default.Email,
                         isEditing = false,
@@ -293,7 +298,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     ProfileField(
-                        label = "Số điện thoại",
+                        label = stringResource(R.string.phone_number),
                         value = phoneNumber,
                         icon = Icons.Default.Phone,
                         isEditing = isEditing,
@@ -303,7 +308,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     ProfileField(
-                        label = "Địa chỉ",
+                        label = stringResource(R.string.address),
                         value = address,
                         icon = Icons.Default.LocationOn,
                         isEditing = isEditing,
@@ -313,7 +318,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     ProfileField(
-                        label = "Giới thiệu",
+                        label = stringResource(R.string.bio),
                         value = bio,
                         icon = Icons.Default.Description,
                         isEditing = isEditing,
@@ -323,7 +328,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     ProfileField(
-                        label = "Giới tính",
+                        label = stringResource(R.string.gender),
                         value = gender,
                         icon = Icons.Default.Wc,
                         isEditing = isEditing,
@@ -333,7 +338,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     ProfileField(
-                        label = "Ngày sinh",
+                        label = stringResource(R.string.birthday),
                         value = birthday,
                         icon = Icons.Default.Cake,
                         isEditing = isEditing,
@@ -345,7 +350,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     ProfileField(
-                        label = "Nghề nghiệp",
+                        label = stringResource(R.string.occupation),
                         value = occupation,
                         icon = Icons.Default.Work,
                         isEditing = isEditing,
@@ -355,7 +360,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     ProfileField(
-                        label = "Ngày tham gia",
+                        label = stringResource(R.string.join_date),
                         value = joinDate,
                         icon = Icons.Default.CalendarMonth,
                         isEditing = false,
@@ -415,7 +420,7 @@ fun ProfileField(
                 )
             } else {
                 Text(
-                    text = if (value.isEmpty()) "Chưa cập nhật" else value,
+                    text = if (value.isEmpty()) stringResource(R.string.not_updated) else value,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)

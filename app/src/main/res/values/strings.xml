@@ -1,3 +1,84 @@
 <resources>
     <string name="app_name">Chill Wallet</string>
+
+    <!-- Register Screen -->
+    <string name="create_account">Tạo tài khoản</string>
+    <string name="register_subtitle">Bắt đầu quản lý chi tiêu ngay hôm nay</string>
+    <string name="full_name">Họ và tên</string>
+    <string name="email">Email</string>
+    <string name="password">Mật khẩu</string>
+    <string name="register_button">ĐĂNG KÝ</string>
+    <string name="already_have_account">Đã có tài khoản? Đăng nhập</string>
+    <string name="error_fill_all">Vui lòng điền đầy đủ thông tin</string>
+    <string name="error_invalid_email">Email không hợp lệ</string>
+    <string name="error_password_too_short">Mật khẩu phải có ít nhất 6 ký tự</string>
+    <string name="error_update_profile">Lỗi cập nhật hồ sơ</string>
+    <string name="error_register_failed">Lỗi đăng ký</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_title">Hồ sơ cá nhân</string>
+    <string name="edit">Sửa</string>
+    <string name="save">Lưu</string>
+    <string name="update_success">Cập nhật hồ sơ thành công!</string>
+    <string name="basic_info">Thông tin cơ bản</string>
+    <string name="phone_number">Số điện thoại</string>
+    <string name="address">Địa chỉ</string>
+    <string name="bio">Giới thiệu</string>
+    <string name="gender">Giới tính</string>
+    <string name="birthday">Ngày sinh</string>
+    <string name="occupation">Nghề nghiệp</string>
+    <string name="join_date">Ngày tham gia</string>
+    <string name="not_updated">Chưa cập nhật</string>
+    <string name="error_invalid_phone">Số điện thoại không hợp lệ</string>
+
+    <!-- Home Screen -->
+    <string name="welcome">Xin chào,</string>
+    <string name="guest">Người dùng</string>
+    <string name="current_balance">Số dư hiện tại</string>
+    <string name="income">Thu nhập</string>
+    <string name="expense">Chi tiêu</string>
+    <string name="spending_distribution">Phân bổ chi tiêu</string>
+    <string name="transaction_history">Lịch sử giao dịch</string>
+    <string name="no_transactions">Chưa có giao dịch nào.</string>
+    <string name="confirm_delete_title">Xác nhận xóa</string>
+    <string name="confirm_delete_msg">Bạn có chắc muốn xóa khoản chi tiêu này không?</string>
+    <string name="delete">XÓA</string>
+    <string name="cancel">HỦY</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Cài đặt</string>
+    <string name="account_group">Tài khoản</string>
+    <string name="change_password">Đổi mật khẩu</string>
+    <string name="update_password_subtitle">Cập nhật mật khẩu mới</string>
+    <string name="update_email">Cập nhật Email</string>
+    <string name="app_group">Ứng dụng</string>
+    <string name="language">Ngôn ngữ</string>
+    <string name="notifications">Thông báo</string>
+    <string name="dark_mode">Chế độ tối</string>
+    <string name="other_group">Khác</string>
+    <string name="about_app">Về Chill Wallet</string>
+    <string name="rate_app">Đánh giá ứng dụng</string>
+    <string name="version">Phiên bản</string>
+    <string name="current_password">Mật khẩu hiện tại</string>
+    <string name="new_password">Mật khẩu mới</string>
+    <string name="confirm_new_password">Xác nhận mật khẩu mới</string>
+    <string name="error_fill_info">Vui lòng nhập đầy đủ thông tin</string>
+    <string name="error_password_mismatch">Mật khẩu xác nhận không khớp</string>
+    <string name="password_update_success">Đổi mật khẩu thành công!</string>
+    <string name="error_wrong_password">Mật khẩu hiện tại không đúng</string>
+    <string name="choose_language">Chọn ngôn ngữ</string>
+    <string name="language_changed">Đã đổi sang %s</string>
+    <string name="close">Đóng</string>
+    <string name="new_email">Email mới</string>
+    <string name="email_update_success">Đã cập nhật email thành công!</string>
+
+    <!-- Navigation/Menu -->
+    <string name="menu_home">Trang chủ</string>
+    <string name="menu_stats">Thống kê</string>
+    <string name="menu_add">Thêm</string>
+    <string name="menu_budget">Ngân sách</string>
+    <string name="menu_categories">Danh mục</string>
+    <string name="menu_settings">Cài đặt</string>
+    <string name="menu_profile">Hồ sơ</string>
+    <string name="logout">Đăng xuất</string>
 </resources>

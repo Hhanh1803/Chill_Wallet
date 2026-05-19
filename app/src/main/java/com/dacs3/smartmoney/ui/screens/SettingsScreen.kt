@@ -17,12 +17,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.dacs3.smartmoney.R
 import com.dacs3.smartmoney.data.PreferenceManager
 import com.dacs3.smartmoney.ui.theme.PinkDark
 import com.dacs3.smartmoney.ui.theme.PinkPrimary
@@ -63,7 +67,7 @@ fun SettingsScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Cài đặt", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.settings_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onOpenDrawer) {
                         Icon(Icons.Default.Menu, contentDescription = "Menu")
@@ -97,25 +101,35 @@ fun SettingsScreen(
                     Box(
                         modifier = Modifier
                             .size(60.dp)
-                            .background(PinkPrimary.copy(alpha = 0.1f), CircleShape),
+                            .clip(CircleShape)
+                            .background(PinkPrimary.copy(alpha = 0.1f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            Icons.Default.Person,
-                            contentDescription = null,
-                            tint = PinkPrimary,
-                            modifier = Modifier.size(32.dp)
-                        )
+                        if (user?.photoUrl != null) {
+                            AsyncImage(
+                                model = user.photoUrl,
+                                contentDescription = "Profile Picture",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Icon(
+                                Icons.Default.Person,
+                                contentDescription = null,
+                                tint = PinkPrimary,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
                         Text(
-                            text = user?.displayName ?: "Người dùng Chill",
+                            text = user?.displayName ?: stringResource(R.string.guest),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = user?.email ?: "Email chưa cập nhật",
+                            text = user?.email ?: stringResource(R.string.not_updated),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.Gray
                         )
@@ -123,30 +137,30 @@ fun SettingsScreen(
                 }
             }
 
-            SettingsGroup(title = "Tài khoản") {
+            SettingsGroup(title = stringResource(R.string.account_group)) {
                 SettingsItem(
                     icon = Icons.Default.Lock,
-                    title = "Đổi mật khẩu",
-                    subtitle = "Cập nhật mật khẩu mới",
+                    title = stringResource(R.string.change_password),
+                    subtitle = stringResource(R.string.update_password_subtitle),
                     onClick = { showChangePasswordDialog = true }
                 )
                 SettingsItem(
                     icon = Icons.Default.Email,
-                    title = "Cập nhật Email",
+                    title = stringResource(R.string.update_email),
                     onClick = { showUpdateEmailDialog = true }
                 )
             }
 
-            SettingsGroup(title = "Ứng dụng") {
+            SettingsGroup(title = stringResource(R.string.app_group)) {
                 SettingsItem(
                     icon = Icons.Default.Language,
-                    title = "Ngôn ngữ",
+                    title = stringResource(R.string.language),
                     subtitle = selectedLanguage,
                     onClick = { showLanguageDialog = true }
                 )
                 SettingsItem(
                     icon = Icons.Default.Notifications,
-                    title = "Thông báo",
+                    title = stringResource(R.string.notifications),
                     trailing = {
                         Switch(
                             checked = isNotificationsEnabled,
@@ -159,7 +173,7 @@ fun SettingsScreen(
                 )
                 SettingsItem(
                     icon = Icons.Default.Palette,
-                    title = "Chế độ tối",
+                    title = stringResource(R.string.dark_mode),
                     trailing = {
                         Switch(
                             checked = isDarkMode,
@@ -172,17 +186,17 @@ fun SettingsScreen(
                 )
             }
 
-            SettingsGroup(title = "Khác") {
+            SettingsGroup(title = stringResource(R.string.other_group)) {
                 SettingsItem(
                     icon = Icons.Default.Info,
-                    title = "Về Chill Wallet",
+                    title = stringResource(R.string.about_app),
                     onClick = { 
                         Toast.makeText(context, "Chill Wallet v1.0.0 - DACS3", Toast.LENGTH_SHORT).show()
                     }
                 )
                 SettingsItem(
                     icon = Icons.Default.Star,
-                    title = "Đánh giá ứng dụng",
+                    title = stringResource(R.string.rate_app),
                     onClick = { 
                         Toast.makeText(context, "Cảm ơn bạn đã ủng hộ!", Toast.LENGTH_SHORT).show()
                     }
@@ -192,7 +206,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(32.dp))
             
             Text(
-                text = "Phiên bản 1.0.0",
+                text = "${stringResource(R.string.version)} 1.0.0",
                 modifier = Modifier.align(Alignment.CenterHorizontally),
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray
@@ -205,13 +219,13 @@ fun SettingsScreen(
     if (showChangePasswordDialog) {
         AlertDialog(
             onDismissRequest = { showChangePasswordDialog = false },
-            title = { Text("Đổi mật khẩu") },
+            title = { Text(stringResource(R.string.change_password)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     OutlinedTextField(
                         value = oldPassword,
                         onValueChange = { oldPassword = it },
-                        label = { Text("Mật khẩu hiện tại") },
+                        label = { Text(stringResource(R.string.current_password)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = if (oldPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -225,7 +239,7 @@ fun SettingsScreen(
                     OutlinedTextField(
                         value = newPassword,
                         onValueChange = { newPassword = it },
-                        label = { Text("Mật khẩu mới") },
+                        label = { Text(stringResource(R.string.new_password)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = if (newPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -239,7 +253,7 @@ fun SettingsScreen(
                     OutlinedTextField(
                         value = confirmPassword,
                         onValueChange = { confirmPassword = it },
-                        label = { Text("Xác nhận mật khẩu mới") },
+                        label = { Text(stringResource(R.string.confirm_new_password)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = if (newPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -251,15 +265,15 @@ fun SettingsScreen(
                 Button(
                     onClick = {
                         if (oldPassword.isEmpty() || newPassword.isEmpty()) {
-                            Toast.makeText(context, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.error_fill_info), Toast.LENGTH_SHORT).show()
                             return@Button
                         }
                         if (newPassword != confirmPassword) {
-                            Toast.makeText(context, "Mật khẩu xác nhận không khớp", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.error_password_mismatch), Toast.LENGTH_SHORT).show()
                             return@Button
                         }
                         if (newPassword.length < 6) {
-                            Toast.makeText(context, "Mật khẩu phải ít nhất 6 ký tự", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.error_password_too_short), Toast.LENGTH_SHORT).show()
                             return@Button
                         }
 
@@ -270,7 +284,7 @@ fun SettingsScreen(
                                 user.updatePassword(newPassword).addOnCompleteListener { updateTask ->
                                     if (updateTask.isSuccessful) {
                                         scope.launch {
-                                            snackbarHostState.showSnackbar("Đổi mật khẩu thành công!")
+                                            snackbarHostState.showSnackbar(context.getString(R.string.password_update_success))
                                         }
                                         showChangePasswordDialog = false
                                         oldPassword = ""
@@ -283,18 +297,18 @@ fun SettingsScreen(
                                     }
                                 }
                             } else {
-                                Toast.makeText(context, "Mật khẩu hiện tại không đúng", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.error_wrong_password), Toast.LENGTH_SHORT).show()
                             }
                         }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = PinkPrimary)
                 ) {
-                    Text("Lưu")
+                    Text(stringResource(R.string.save))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showChangePasswordDialog = false }) {
-                    Text("Hủy", color = Color.Gray)
+                    Text(stringResource(R.string.cancel), color = Color.Gray)
                 }
             }
         )
@@ -304,7 +318,7 @@ fun SettingsScreen(
     if (showLanguageDialog) {
         AlertDialog(
             onDismissRequest = { showLanguageDialog = false },
-            title = { Text("Chọn ngôn ngữ") },
+            title = { Text(stringResource(R.string.choose_language)) },
             text = {
                 Column {
                     val languages = listOf("Tiếng Việt", "English")
@@ -315,7 +329,7 @@ fun SettingsScreen(
                                 .clickable {
                                     scope.launch { preferenceManager.setLanguage(lang) }
                                     showLanguageDialog = false
-                                    Toast.makeText(context, "Đã đổi sang $lang", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, context.getString(R.string.language_changed, lang), Toast.LENGTH_SHORT).show()
                                 }
                                 .padding(vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
@@ -325,7 +339,7 @@ fun SettingsScreen(
                                 onClick = {
                                     scope.launch { preferenceManager.setLanguage(lang) }
                                     showLanguageDialog = false
-                                    Toast.makeText(context, "Đã đổi sang $lang", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, context.getString(R.string.language_changed, lang), Toast.LENGTH_SHORT).show()
                                 },
                                 colors = RadioButtonDefaults.colors(selectedColor = PinkPrimary)
                             )
@@ -336,7 +350,7 @@ fun SettingsScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showLanguageDialog = false }) {
-                    Text("Đóng", color = PinkPrimary)
+                    Text(stringResource(R.string.close), color = PinkPrimary)
                 }
             }
         )
@@ -346,12 +360,12 @@ fun SettingsScreen(
     if (showUpdateEmailDialog) {
         AlertDialog(
             onDismissRequest = { showUpdateEmailDialog = false },
-            title = { Text("Cập nhật Email") },
+            title = { Text(stringResource(R.string.update_email)) },
             text = {
                 OutlinedTextField(
                     value = newEmail,
                     onValueChange = { newEmail = it },
-                    label = { Text("Email mới") },
+                    label = { Text(stringResource(R.string.new_email)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PinkPrimary, focusedLabelColor = PinkPrimary)
@@ -365,7 +379,7 @@ fun SettingsScreen(
                                 ?.addOnCompleteListener { task ->
                                     if (task.isSuccessful) {
                                         scope.launch {
-                                            snackbarHostState.showSnackbar("Đã cập nhật email thành công!")
+                                            snackbarHostState.showSnackbar(context.getString(R.string.email_update_success))
                                         }
                                         showUpdateEmailDialog = false
                                     } else {
@@ -375,17 +389,17 @@ fun SettingsScreen(
                                     }
                                 }
                         } else {
-                            Toast.makeText(context, "Email không hợp lệ", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.error_invalid_email), Toast.LENGTH_SHORT).show()
                         }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = PinkPrimary)
                 ) {
-                    Text("Lưu")
+                    Text(stringResource(R.string.save))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showUpdateEmailDialog = false }) {
-                    Text("Hủy", color = Color.Gray)
+                    Text(stringResource(R.string.cancel), color = Color.Gray)
                 }
             }
         )

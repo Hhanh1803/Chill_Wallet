@@ -9,24 +9,32 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dacs3.smartmoney.R
 import com.dacs3.smartmoney.ui.theme.*
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.userProfileChangeRequest
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
     onBackToLogin: () -> Unit
 ) {
+    var displayName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     
     val auth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance()
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -45,14 +53,14 @@ fun RegisterScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                "Tạo tài khoản",
+                stringResource(R.string.create_account),
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Black,
                 color = MintDark
             )
             
             Text(
-                "Bắt đầu quản lý chi tiêu ngay hôm nay",
+                stringResource(R.string.register_subtitle),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 color = MediumText,
@@ -62,9 +70,23 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(40.dp))
 
             OutlinedTextField(
+                value = displayName,
+                onValueChange = { displayName = it },
+                label = { Text(stringResource(R.string.full_name)) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MintPrimary,
+                    unfocusedBorderColor = MintPrimary.copy(alpha = 0.5f)
+                )
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email") },
+                label = { Text(stringResource(R.string.email)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -78,7 +100,7 @@ fun RegisterScreen(
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Mật khẩu") },
+                label = { Text(stringResource(R.string.password)) },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -104,15 +126,52 @@ fun RegisterScreen(
             } else {
                 Button(
                     onClick = {
-                        if (email.isNotEmpty() && password.isNotEmpty()) {
-                            isLoading = true
-                            auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener {
-                                isLoading = false
-                                if (it.isSuccessful) onRegisterSuccess()
-                                else error = it.exception?.message ?: "Lỗi đăng ký"
+                        val emailPattern = android.util.Patterns.EMAIL_ADDRESS
+                        
+                        when {
+                            displayName.isEmpty() || email.isEmpty() || password.isEmpty() -> {
+                                error = context.getString(R.string.error_fill_all)
                             }
-                        } else {
-                            error = "Vui lòng điền đầy đủ thông tin"
+                            !emailPattern.matcher(email).matches() -> {
+                                error = context.getString(R.string.error_invalid_email)
+                            }
+                            password.length < 6 -> {
+                                error = context.getString(R.string.error_password_too_short)
+                            }
+                            else -> {
+                                isLoading = true
+                                auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        val user = auth.currentUser
+                                        val profileUpdates = userProfileChangeRequest {
+                                            this.displayName = displayName
+                                        }
+                                        
+                                        user?.updateProfile(profileUpdates)?.addOnCompleteListener { profileTask ->
+                                            if (profileTask.isSuccessful) {
+                                                // Lưu vào Firestore
+                                                val userData = hashMapOf(
+                                                    "displayName" to displayName,
+                                                    "email" to email,
+                                                    "joinDate" to System.currentTimeMillis()
+                                                )
+                                                user.uid.let { uid ->
+                                                    db.collection("users").document(uid).set(userData).addOnCompleteListener {
+                                                        isLoading = false
+                                                        onRegisterSuccess()
+                                                    }
+                                                }
+                                            } else {
+                                                isLoading = false
+                                                error = profileTask.exception?.message ?: context.getString(R.string.error_update_profile)
+                                            }
+                                        }
+                                    } else {
+                                        isLoading = false
+                                        error = task.exception?.message ?: context.getString(R.string.error_register_failed)
+                                    }
+                                }
+                            }
                         }
                     },
                     modifier = Modifier
@@ -122,7 +181,7 @@ fun RegisterScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = MintPrimary)
                 ) {
                     Text(
-                        "ĐĂNG KÝ",
+                        stringResource(R.string.register_button),
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         color = DarkText
@@ -133,7 +192,7 @@ fun RegisterScreen(
 
                 TextButton(onClick = onBackToLogin) {
                     Text(
-                        "Đã có tài khoản? Đăng nhập",
+                        stringResource(R.string.already_have_account),
                         color = MintDark,
                         fontWeight = FontWeight.Medium
                     )

@@ -15,12 +15,15 @@ import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,6 +31,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
+import coil.compose.AsyncImage
 import com.dacs3.smartmoney.data.PreferenceManager
 import com.dacs3.smartmoney.ui.navigation.Screen
 import com.dacs3.smartmoney.ui.screens.*
@@ -157,7 +161,7 @@ fun MainScaffold(
         Screen.Stats,
         Screen.Add,
         Screen.Budget,
-        Screen.CategoryManagement
+        Screen.Profile
     )
 
     ModalNavigationDrawer(
@@ -172,21 +176,76 @@ fun MainScaffold(
                         .fillMaxHeight()
                         .padding(horizontal = 16.dp)
                 ) {
+                    val user = FirebaseAuth.getInstance().currentUser
+                    
                     Spacer(modifier = Modifier.height(48.dp))
                     
-                    Text(
-                        "Chill Wallet",
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Black,
-                        color = PinkDark
-                    )
+                    // User Profile Header in Drawer
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            modifier = Modifier.size(64.dp),
+                            shape = CircleShape,
+                            color = PinkPrimary.copy(alpha = 0.1f)
+                        ) {
+                            if (user?.photoUrl != null) {
+                                AsyncImage(
+                                    model = user.photoUrl,
+                                    contentDescription = "Profile Picture",
+                                    modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        Icons.Default.Person,
+                                        contentDescription = null,
+                                        tint = PinkPrimary,
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                }
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.width(16.dp))
+                        
+                        Column {
+                            Text(
+                                text = user?.displayName ?: "Người dùng",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
+                            Text(
+                                text = user?.email ?: "",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Gray
+                            )
+                        }
+                    }
                     
-                    Spacer(modifier = Modifier.height(32.dp))
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        thickness = 1.dp,
+                        color = SoftGray
+                    )
 
-                    listOf(Screen.Profile, Screen.Home, Screen.Stats, Screen.Budget, Screen.CategoryManagement, Screen.Settings).forEach { screen ->
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    listOf(
+                        Screen.Profile to R.string.menu_profile,
+                        Screen.Home to R.string.menu_home,
+                        Screen.Stats to R.string.menu_stats,
+                        Screen.Budget to R.string.menu_budget,
+                        Screen.CategoryManagement to R.string.menu_categories,
+                        Screen.Settings to R.string.menu_settings
+                    ).forEach { (screen, labelRes) ->
                         DrawerMenuItem(
-                            label = screen.title,
+                            label = stringResource(labelRes),
                             icon = screen.icon ?: Icons.Default.Menu,
                             selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                             onClick = {
@@ -203,7 +262,7 @@ fun MainScaffold(
                     Spacer(modifier = Modifier.weight(1f))
 
                     DrawerMenuItem(
-                        label = "Đăng xuất",
+                        label = stringResource(R.string.logout),
                         icon = Icons.AutoMirrored.Filled.Logout,
                         selected = false,
                         color = Color.Red,
@@ -244,14 +303,14 @@ fun MainScaffold(
                                         Box(contentAlignment = Alignment.Center) {
                                             Icon(
                                                 imageVector = Icons.Default.Add,
-                                                contentDescription = "Thêm",
+                                                contentDescription = stringResource(R.string.menu_add),
                                                 tint = Color.White,
                                                 modifier = Modifier.size(28.dp)
                                             )
                                         }
                                     }
                                 },
-                                label = { Text("Thêm", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = PinkPrimary) },
+                                label = { Text(stringResource(R.string.menu_add), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = PinkPrimary) },
                                 selected = false,
                                 onClick = { navController.navigate(Screen.Add.route) },
                                 colors = NavigationBarItemDefaults.colors(
@@ -259,19 +318,26 @@ fun MainScaffold(
                                 )
                             )
                         } else {
+                            val labelRes = when(screen) {
+                                Screen.Home -> R.string.menu_home
+                                Screen.Stats -> R.string.menu_stats
+                                Screen.Budget -> R.string.menu_budget
+                                Screen.Profile -> R.string.menu_profile
+                                else -> R.string.app_name
+                            }
                             NavigationBarItem(
                                 icon = { 
                                     screen.icon?.let { 
                                         Icon(
                                             imageVector = it, 
-                                            contentDescription = screen.title,
+                                            contentDescription = stringResource(labelRes),
                                             modifier = Modifier.size(24.dp)
                                         ) 
                                     } 
                                 },
                                 label = { 
                                     Text(
-                                        screen.title, 
+                                        stringResource(labelRes),
                                         fontSize = 10.sp,
                                         fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
                                     ) 

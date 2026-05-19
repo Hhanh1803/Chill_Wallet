@@ -11,12 +11,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,13 +24,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.dacs3.smartmoney.R
 import com.dacs3.smartmoney.data.model.Transaction
 import com.dacs3.smartmoney.ui.theme.*
 import com.dacs3.smartmoney.viewmodel.TransactionViewModel
 import com.dacs3.smartmoney.util.AppUtils
+import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -144,19 +149,19 @@ fun HomeScreen(
         if (transactionToDelete != null) {
             AlertDialog(
                 onDismissRequest = { transactionToDelete = null },
-                title = { Text("Xác nhận xóa") },
-                text = { Text("Bạn có chắc muốn xóa khoản chi tiêu này không?") },
+                title = { Text(stringResource(R.string.confirm_delete_title)) },
+                text = { Text(stringResource(R.string.confirm_delete_msg)) },
                 confirmButton = {
                     TextButton(onClick = {
                         viewModel.deleteTransaction(transactionToDelete!!.transactionId)
                         transactionToDelete = null
                     }) {
-                        Text("XÓA", color = Color.Red)
+                        Text(stringResource(R.string.delete), color = Color.Red)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { transactionToDelete = null }) {
-                        Text("HỦY")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             )
@@ -173,6 +178,54 @@ fun HomeScreen(
                     .padding(paddingValues)
                     .background(MaterialTheme.colorScheme.background)
             ) {
+                item {
+                    val user = FirebaseAuth.getInstance().currentUser
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                stringResource(R.string.welcome),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
+                            )
+                            Text(
+                                user?.displayName ?: stringResource(R.string.guest),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+                        
+                        Surface(
+                            modifier = Modifier.size(48.dp),
+                            shape = CircleShape,
+                            color = PinkPrimary.copy(alpha = 0.1f)
+                        ) {
+                            if (user?.photoUrl != null) {
+                                AsyncImage(
+                                    model = user.photoUrl,
+                                    contentDescription = "Profile Picture",
+                                    modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        Icons.Default.Person,
+                                        contentDescription = null,
+                                        tint = PinkPrimary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 item {
                     androidx.compose.foundation.lazy.LazyRow(
                         modifier = Modifier
@@ -236,7 +289,7 @@ fun HomeScreen(
                         ) {
                             Column {
                                 Text(
-                                    "Số dư hiện tại",
+                                    stringResource(R.string.current_balance),
                                     style = MaterialTheme.typography.titleSmall,
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                 )
@@ -253,14 +306,14 @@ fun HomeScreen(
                                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
                                     SummaryMiniCard(
-                                        label = "Thu nhập",
+                                        label = stringResource(R.string.income),
                                         amount = totalIncome,
                                         color = MintDark,
                                         icon = Icons.AutoMirrored.Filled.TrendingUp,
                                         modifier = Modifier.weight(1f)
                                     )
                                     SummaryMiniCard(
-                                        label = "Chi tiêu",
+                                        label = stringResource(R.string.expense),
                                         amount = totalExpense,
                                         color = PinkDark,
                                         icon = Icons.AutoMirrored.Filled.TrendingDown,
@@ -289,7 +342,7 @@ fun HomeScreen(
 
                 item {
                     Text(
-                        "Lịch sử giao dịch",
+                        stringResource(R.string.transaction_history),
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
@@ -313,7 +366,7 @@ fun HomeScreen(
                                     tint = Color.LightGray
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
-                                Text("Chưa có giao dịch nào.", color = Color.Gray)
+                                Text(stringResource(R.string.no_transactions), color = Color.Gray)
                             }
                         }
                     }
@@ -467,7 +520,7 @@ fun CategoryPercentageChart(
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
             Text(
-                "Phân bổ chi tiêu",
+                stringResource(R.string.spending_distribution),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
