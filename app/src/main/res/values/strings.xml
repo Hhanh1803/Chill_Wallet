@@ -72,13 +72,44 @@
     <string name="new_email">Email mới</string>
     <string name="email_update_success">Đã cập nhật email thành công!</string>
 
-    <!-- Navigation/Menu -->
+    <!-- Budget Screen -->
+    <string name="budget_title">Quản lý ngân sách</string>
+    <string name="add_budget">Thêm ngân sách</string>
+    <string name="no_budgets">Chưa có ngân sách nào.</string>
+    <string name="used">Đã sử dụng</string>
+    <string name="setup_budget">Thiết lập ngân sách</string>
+    <string name="budget_limit">Hạn mức hàng tháng</string>
+    <string name="setup">THIẾT LẬP</string>
     <string name="menu_home">Trang chủ</string>
     <string name="menu_stats">Thống kê</string>
+    <string name="stats_title">Thống kê</string>
     <string name="menu_add">Thêm</string>
     <string name="menu_budget">Ngân sách</string>
     <string name="menu_categories">Danh mục</string>
     <string name="menu_settings">Cài đặt</string>
     <string name="menu_profile">Hồ sơ</string>
     <string name="logout">Đăng xuất</string>
+
+    <!-- Group Fund -->
+    <string name="group_fund_title">Quỹ nhóm</string>
+    <string name="create_group">Tạo nhóm mới</string>
+    <string name="join_group">Tham gia nhóm</string>
+    <string name="group_name">Tên nhóm</string>
+    <string name="group_description">Mô tả nhóm</string>
+    <string name="invite_code">Mã mời</string>
+    <string name="enter_invite_code">Nhập mã mời (6 số)</string>
+    <string name="create_success">Tạo nhóm thành công!</string>
+    <string name="join_success">Tham gia nhóm thành công!</string>
+    <string name="group_balance">Số dư quỹ</string>
+    <string name="members">%d thành viên</string>
+    <string name="group_transactions">Giao dịch nhóm</string>
+    <string name="no_groups">Bạn chưa tham gia nhóm nào</string>
+    <string name="error_invalid_code">Mã mời không hợp lệ</string>
+    <string name="qr_code">Mã QR</string>
+    <string name="scan_qr">Quét mã QR</string>
+    <string name="invite_code_qr">Mã QR Mời Tham Gia</string>
+    <string name="group_fund_list_title">Danh sách nhóm của bạn</string>
+    <string name="invite_code_label">Mã mời</string>
+    <string name="join_group_hint">Nhập mã mời 6 chữ số để tham gia nhóm quỹ chung</string>
+    <string name="share_code_hint">Chia sẻ mã này để mời thành viên mới</string>
 </resources>

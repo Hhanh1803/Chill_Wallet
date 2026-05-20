@@ -28,6 +28,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.dacs3.smartmoney.R
 import com.dacs3.smartmoney.viewmodel.TransactionViewModel
 import com.dacs3.smartmoney.util.AppUtils
 import com.dacs3.smartmoney.ui.theme.*
@@ -62,14 +64,15 @@ fun StatsScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        "Biến động thu chi", 
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleMedium
+                        stringResource(R.string.stats_title),
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.primary,
+                        letterSpacing = 1.sp
                     ) 
                 },
                 navigationIcon = {
                     IconButton(onClick = onOpenDrawer) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.Menu, contentDescription = "Menu")
                     }
                 },
                 actions = {
@@ -227,7 +230,7 @@ fun StatsScreen(
                         Spacer(modifier = Modifier.height(24.dp))
                         
                         Text(
-                            "Biến động",
+                            stringResource(R.string.stats_title),
                             modifier = Modifier.fillMaxWidth(),
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
@@ -485,13 +488,13 @@ fun StatRowItem(stat: Triple<String, Double, Double>, selectedTab: Int) {
                     Text(
                         stat.first,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp,
+                        fontSize = 16.sp,
                         color = DarkText
                     )
                     val subLabel = when(selectedTab) {
-                        0 -> "Tuần"
-                        1 -> "Tháng"
-                        else -> "Năm"
+                        0 -> "Ngày"
+                        1 -> "Tuần"
+                        else -> "Tháng"
                     }
                     Text(subLabel, fontSize = 8.sp, color = Color.Gray)
                 }
@@ -503,7 +506,7 @@ fun StatRowItem(stat: Triple<String, Double, Double>, selectedTab: Int) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(MintPrimary))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Thu:", fontSize = 11.sp, color = Color.Gray)
+                    Text("Thu:", fontSize = 12.sp, color = Color.Gray)
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(AppUtils.formatCurrency(stat.second), fontSize = 11.sp, fontWeight = FontWeight.Medium)
                 }
@@ -511,7 +514,7 @@ fun StatRowItem(stat: Triple<String, Double, Double>, selectedTab: Int) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(PinkPrimary))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Chi:", fontSize = 11.sp, color = Color.Gray)
+                    Text("Chi:", fontSize = 12.sp, color = Color.Gray)
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(AppUtils.formatCurrency(stat.third), fontSize = 11.sp, fontWeight = FontWeight.Medium)
                 }
@@ -521,8 +524,8 @@ fun StatRowItem(stat: Triple<String, Double, Double>, selectedTab: Int) {
                 Text("Dư", fontSize = 9.sp, color = Color.Gray)
                 Text(
                     (if (isPositive && diff > 0) "+" else "") + AppUtils.formatCurrency(diff),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 16.sp,
                     color = if (isPositive) Color(0xFF00C853) else Color(0xFFFF3366)
                 )
             }

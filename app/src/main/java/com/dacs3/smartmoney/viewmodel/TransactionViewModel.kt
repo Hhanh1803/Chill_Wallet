@@ -47,38 +47,67 @@ class TransactionViewModel : ViewModel() {
         .map { list -> list.sortedByDescending { it.date } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Thống kê theo tuần (trong tháng hiện tại)
+    // Thống kê theo tuần (7 ngày của tuần hiện tại)
     val weeklyStats: StateFlow<List<Triple<String, Double, Double>>> = _allTransactions.map { list ->
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+
+        // Chỉnh về Thứ 2 đầu tuần
+        while (calendar.get(Calendar.DAY_OF_WEEK) != Calendar.MONDAY) {
+            calendar.add(Calendar.DAY_OF_MONTH, -1)
+        }
+
+        val dayLabels = listOf("T2", "T3", "T4", "T5", "T6", "T7", "CN")
+        dayLabels.map { label ->
+            val dayStart = calendar.timeInMillis
+            calendar.add(Calendar.DAY_OF_MONTH, 1)
+            val dayEnd = calendar.timeInMillis
+
+            val dayTransactions = list.filter { it.date in dayStart until dayEnd }
+            val income = dayTransactions.filter { it.type == "INCOME" }.sumOf { it.amount }
+            val expense = dayTransactions.filter { it.type == "EXPENSE" }.sumOf { it.amount }
+
+            Triple(label, income, expense)
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Thống kê theo tháng (Chia theo tuần trong tháng hiện tại)
+    val monthlyStatsList: StateFlow<List<Triple<String, Double, Double>>> = _allTransactions.map { list ->
         val calendar = Calendar.getInstance()
         val currentMonth = calendar.get(Calendar.MONTH)
         val currentYear = calendar.get(Calendar.YEAR)
-        
+        val maxDays = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+
         val filtered = list.filter {
             val tCal = Calendar.getInstance().apply { timeInMillis = it.date }
             tCal.get(Calendar.MONTH) == currentMonth && tCal.get(Calendar.YEAR) == currentYear
         }
 
-        val weeks = filtered.groupBy {
-            val tCal = Calendar.getInstance().apply { timeInMillis = it.date }
-            tCal.get(Calendar.WEEK_OF_MONTH)
-        }
+        (1..5).mapNotNull { week ->
+            val startDay = (week - 1) * 7 + 1
+            if (startDay > maxDays) return@mapNotNull null
+            val endDay = (week * 7).coerceAtMost(maxDays)
 
-        (1..5).map { week ->
-            val weekTransactions = weeks[week] ?: emptyList()
+            val weekTransactions = filtered.filter {
+                val day = Calendar.getInstance().apply { timeInMillis = it.date }.get(Calendar.DAY_OF_MONTH)
+                day in startDay..endDay
+            }
+
             val income = weekTransactions.filter { it.type == "INCOME" }.sumOf { it.amount }
             val expense = weekTransactions.filter { it.type == "EXPENSE" }.sumOf { it.amount }
-            
-            val startDay = (week - 1) * 7 + 1
-            val endDay = (week * 7).coerceAtMost(31)
+
             Triple("$startDay-$endDay", income, expense)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Thống kê theo tháng (trong năm hiện tại)
-    val monthlyStatsList: StateFlow<List<Triple<String, Double, Double>>> = _allTransactions.map { list ->
+    // Thống kê theo năm (12 tháng của năm hiện tại)
+    val yearlyStatsList: StateFlow<List<Triple<String, Double, Double>>> = _allTransactions.map { list ->
         val calendar = Calendar.getInstance()
         val currentYear = calendar.get(Calendar.YEAR)
-        
+
         val filtered = list.filter {
             Calendar.getInstance().apply { timeInMillis = it.date }.get(Calendar.YEAR) == currentYear
         }
@@ -95,20 +124,6 @@ class TransactionViewModel : ViewModel() {
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Thống kê theo năm
-    val yearlyStatsList: StateFlow<List<Triple<String, Double, Double>>> = _allTransactions.map { list ->
-        val years = list.groupBy {
-            Calendar.getInstance().apply { timeInMillis = it.date }.get(Calendar.YEAR)
-        }
-
-        years.keys.sorted().map { year ->
-            val yearTransactions = years[year] ?: emptyList()
-            val income = yearTransactions.filter { it.type == "INCOME" }.sumOf { it.amount }
-            val expense = yearTransactions.filter { it.type == "EXPENSE" }.sumOf { it.amount }
-            Triple(year.toString(), income, expense)
-        }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
     // Thống kê so sánh với kỳ trước
     val statsComparison: StateFlow<Pair<Double, Boolean>> = combine(
         _allTransactions,
@@ -120,7 +135,27 @@ class TransactionViewModel : ViewModel() {
         val currentYear = calendar.get(Calendar.YEAR)
 
         val (currentVal, prevVal) = when (tab) {
-            0 -> { // Tuần (Thực tế là so sánh tháng này với tháng trước)
+            0 -> { // Tuần (So sánh tuần này với tuần trước)
+                val cal = Calendar.getInstance()
+                cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND, 0); cal.set(Calendar.MILLISECOND, 0)
+                while (cal.get(Calendar.DAY_OF_WEEK) != Calendar.MONDAY) cal.add(Calendar.DAY_OF_MONTH, -1)
+                val thisWeekStart = cal.timeInMillis
+                
+                val current = list.filter { it.date >= thisWeekStart }
+                
+                cal.add(Calendar.DAY_OF_MONTH, -7)
+                val lastWeekStart = cal.timeInMillis
+                val lastWeekEnd = thisWeekStart
+                val prev = list.filter { it.date in lastWeekStart until lastWeekEnd }
+                
+                fun sum(l: List<Transaction>) = when(type) {
+                    0 -> l.filter { it.type == "INCOME" }.sumOf { it.amount }
+                    1 -> l.filter { it.type == "EXPENSE" }.sumOf { it.amount }
+                    else -> l.filter { it.type == "INCOME" }.sumOf { it.amount } - l.filter { it.type == "EXPENSE" }.sumOf { it.amount }
+                }
+                sum(current) to sum(prev)
+            }
+            1 -> { // Tháng (So sánh tháng này với tháng trước)
                 val current = list.filter {
                     val tCal = Calendar.getInstance().apply { timeInMillis = it.date }
                     tCal.get(Calendar.MONTH) == currentMonth && tCal.get(Calendar.YEAR) == currentYear
@@ -131,7 +166,6 @@ class TransactionViewModel : ViewModel() {
                     val pYear = if (currentMonth == 0) currentYear - 1 else currentYear
                     tCal.get(Calendar.MONTH) == pMonth && tCal.get(Calendar.YEAR) == pYear
                 }
-                
                 fun sum(l: List<Transaction>) = when(type) {
                     0 -> l.filter { it.type == "INCOME" }.sumOf { it.amount }
                     1 -> l.filter { it.type == "EXPENSE" }.sumOf { it.amount }
@@ -139,7 +173,7 @@ class TransactionViewModel : ViewModel() {
                 }
                 sum(current) to sum(prev)
             }
-            1 -> { // Tháng (So sánh năm nay với năm trước)
+            2 -> { // Năm (So sánh năm nay với năm trước)
                 val current = list.filter {
                     Calendar.getInstance().apply { timeInMillis = it.date }.get(Calendar.YEAR) == currentYear
                 }

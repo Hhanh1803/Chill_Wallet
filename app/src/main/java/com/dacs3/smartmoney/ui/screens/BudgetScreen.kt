@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.res.stringResource
+import com.dacs3.smartmoney.R
 import com.dacs3.smartmoney.data.model.Budget
 import com.dacs3.smartmoney.ui.theme.*
 import com.dacs3.smartmoney.util.AppUtils
@@ -42,7 +44,7 @@ fun BudgetScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        "Quản lý ngân sách", 
+                        stringResource(R.string.budget_title), 
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.onSurface
                     ) 
@@ -62,7 +64,7 @@ fun BudgetScreen(
                 contentColor = Color.White,
                 shape = androidx.compose.foundation.shape.CircleShape
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Thêm ngân sách", modifier = Modifier.size(30.dp))
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_budget), modifier = Modifier.size(30.dp))
             }
         }
     ) { paddingValues ->
@@ -81,7 +83,7 @@ fun BudgetScreen(
                             tint = Color.LightGray.copy(alpha = 0.5f)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text("Chưa có ngân sách nào.", color = Color.Gray)
+                        Text(stringResource(R.string.no_budgets), color = Color.Gray)
                     }
                 }
             } else {
@@ -193,7 +195,7 @@ fun BudgetCard(budget: Budget, spent: Double) {
                 verticalAlignment = Alignment.Bottom
             ) {
                 Column {
-                    Text("Đã sử dụng", style = MaterialTheme.typography.labelSmall, color = MediumText)
+                    Text(stringResource(R.string.used), style = MaterialTheme.typography.labelSmall, color = MediumText)
                     Text(
                         AppUtils.formatCurrency(spent), 
                         color = if (isOverBudget) Color(0xFFE57373) else DarkText,
@@ -233,7 +235,7 @@ fun AddBudgetDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Thiết lập ngân sách", fontWeight = FontWeight.Bold) },
+        title = { Text(stringResource(R.string.setup_budget), fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 ExposedDropdownMenuBox(
@@ -244,7 +246,7 @@ fun AddBudgetDialog(
                         value = category,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Danh mục chi tiêu") },
+                        label = { Text(stringResource(R.string.menu_categories)) },
                         leadingIcon = { Icon(AppUtils.getCategoryIcon(category), null, tint = themePrimary) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                         modifier = Modifier.fillMaxWidth().menuAnchor(),
@@ -285,7 +287,7 @@ fun AddBudgetDialog(
                             amount = it 
                         }
                     },
-                    label = { Text("Hạn mức hàng tháng") },
+                    label = { Text(stringResource(R.string.budget_limit)) },
                     placeholder = { Text("0") },
                     prefix = { Text("₫ ", fontWeight = FontWeight.Bold) },
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
@@ -332,12 +334,12 @@ fun AddBudgetDialog(
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = themePrimary)
             ) {
-                Text("THIẾT LẬP")
+                Text(stringResource(R.string.setup))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("HỦY", color = Color.Gray)
+                Text(stringResource(R.string.cancel), color = Color.Gray)
             }
         },
         shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),

@@ -18,8 +18,12 @@ sealed class Screen(val route: String, val title: String = "", val icon: ImageVe
     object Add : Screen("add", "Thêm", Icons.Default.Add)
     object Edit : Screen("edit/{transactionId}", "Sửa")
     object Stats : Screen("stats", "Thống kê", Icons.Default.PieChart)
-    object Budget : Screen("budget", "Ngân sách", Icons.Default.AccountBalanceWallet)
+    object Budget : Screen("budget", "Ngân sách", Icons.Default.History)
     object CategoryManagement : Screen("category_management", "Danh mục", Icons.Default.Category)
     object Settings : Screen("settings", "Cài đặt", Icons.Default.Settings)
     object Profile : Screen("profile", "Hồ sơ", Icons.Default.Person)
+    object GroupFund : Screen("group_fund", "Quỹ nhóm", Icons.Default.AccountBalanceWallet)
+    object GroupDetail : Screen("group_detail/{groupId}", "Chi tiết nhóm")
+    object AddGroupTransaction : Screen("add_group_transaction/{groupId}", "Thêm giao dịch nhóm")
+    object QRScanner : Screen("qr_scanner", "Quét QR")
 }

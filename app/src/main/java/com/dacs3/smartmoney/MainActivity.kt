@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,6 +34,14 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
 import coil.compose.AsyncImage
 import com.dacs3.smartmoney.data.PreferenceManager
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
+import androidx.camera.core.Preview
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.barcode.common.Barcode
 import com.dacs3.smartmoney.ui.navigation.Screen
 import com.dacs3.smartmoney.ui.screens.*
 import com.dacs3.smartmoney.ui.theme.*
@@ -140,6 +149,60 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     }
+                    composable(Screen.GroupFund.route) {
+                        MainScaffold(navController) { onOpenDrawer ->
+                            val scanResult = navController.currentBackStackEntry
+                                ?.savedStateHandle
+                                ?.get<String>("scan_result")
+                            
+                            GroupFundScreen(
+                                onNavigateToDetail = { groupId ->
+                                    navController.navigate("group_detail/$groupId")
+                                },
+                                onNavigateToScanner = {
+                                    navController.navigate(Screen.QRScanner.route)
+                                },
+                                onOpenDrawer = onOpenDrawer,
+                                scanResult = scanResult
+                            )
+                            
+                            // Clear result after use
+                            SideEffect {
+                                navController.currentBackStackEntry
+                                    ?.savedStateHandle
+                                    ?.remove<String>("scan_result")
+                            }
+                        }
+                    }
+                    composable(Screen.GroupDetail.route) { backStackEntry ->
+                        val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
+                        GroupDetailScreen(
+                            groupId = groupId,
+                            onBack = { navController.popBackStack() },
+                            onNavigateToAddTransaction = { id ->
+                                navController.navigate("add_group_transaction/$id")
+                            }
+                        )
+                    }
+                    composable(Screen.AddGroupTransaction.route) { backStackEntry ->
+                        val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
+                        AddGroupTransactionScreen(
+                            groupId = groupId,
+                            viewModel = transactionViewModel,
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+                    composable(Screen.QRScanner.route) {
+                        QRScannerScreen(
+                            onScanSuccess = { code ->
+                                navController.previousBackStackEntry
+                                    ?.savedStateHandle
+                                    ?.set("scan_result", code)
+                                navController.popBackStack()
+                            },
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
                 }
             }
         }
@@ -160,7 +223,7 @@ fun MainScaffold(
         Screen.Home,
         Screen.Stats,
         Screen.Add,
-        Screen.Budget,
+        Screen.GroupFund,
         Screen.Profile
     )
 
@@ -192,23 +255,16 @@ fun MainScaffold(
                             shape = CircleShape,
                             color = PinkPrimary.copy(alpha = 0.1f)
                         ) {
-                            if (user?.photoUrl != null) {
-                                AsyncImage(
-                                    model = user.photoUrl,
-                                    contentDescription = "Profile Picture",
-                                    modifier = Modifier.fillMaxSize().clip(CircleShape),
-                                    contentScale = ContentScale.Crop
-                                )
-                            } else {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        Icons.Default.Person,
-                                        contentDescription = null,
-                                        tint = PinkPrimary,
-                                        modifier = Modifier.size(32.dp)
-                                    )
-                                }
-                            }
+                            AsyncImage(
+                                model = user?.photoUrl,
+                                contentDescription = "Profile Picture",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop,
+                                placeholder = rememberVectorPainter(Icons.Default.Person),
+                                error = rememberVectorPainter(Icons.Default.Person)
+                            )
                         }
                         
                         Spacer(modifier = Modifier.width(16.dp))
@@ -239,6 +295,7 @@ fun MainScaffold(
                     listOf(
                         Screen.Profile to R.string.menu_profile,
                         Screen.Home to R.string.menu_home,
+                        Screen.GroupFund to R.string.group_fund_title,
                         Screen.Stats to R.string.menu_stats,
                         Screen.Budget to R.string.menu_budget,
                         Screen.CategoryManagement to R.string.menu_categories,
@@ -321,7 +378,7 @@ fun MainScaffold(
                             val labelRes = when(screen) {
                                 Screen.Home -> R.string.menu_home
                                 Screen.Stats -> R.string.menu_stats
-                                Screen.Budget -> R.string.menu_budget
+                                Screen.GroupFund -> R.string.group_fund_title
                                 Screen.Profile -> R.string.menu_profile
                                 else -> R.string.app_name
                             }
