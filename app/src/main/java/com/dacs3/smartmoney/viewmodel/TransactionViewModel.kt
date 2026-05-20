@@ -249,7 +249,7 @@ class TransactionViewModel : ViewModel() {
     // CHỨC NĂNG: QUẢN LÝ DANH MỤC
     fun loadCategoriesRealtime() {
         viewModelScope.launch {
-            repository.getCategoriesRealtime().collect { list ->
+            repository.getCombinedCategoriesRealtime().collect { list ->
                 _categories.value = list
             }
         }

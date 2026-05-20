@@ -149,10 +149,14 @@ fun RegisterScreen(
                                         
                                         user?.updateProfile(profileUpdates)?.addOnCompleteListener { profileTask ->
                                             if (profileTask.isSuccessful) {
-                                                // Lưu vào Firestore
+                                                // Lưu vào Firestore với cấu trúc chuẩn
                                                 val userData = hashMapOf(
+                                                    "uid" to user.uid,
                                                     "displayName" to displayName,
+                                                    "fullName" to displayName,
                                                     "email" to email,
+                                                    "role" to "USER",
+                                                    "isLocked" to false,
                                                     "joinDate" to System.currentTimeMillis()
                                                 )
                                                 user.uid.let { uid ->

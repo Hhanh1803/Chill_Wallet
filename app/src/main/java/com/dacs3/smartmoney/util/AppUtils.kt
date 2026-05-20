@@ -1,7 +1,7 @@
 package com.dacs3.smartmoney.util
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -47,23 +47,23 @@ object AppUtils {
     // Hàm lấy Icon tương ứng với tên danh mục (đã bổ sung đầy đủ)
     fun getCategoryIcon(categoryName: String): ImageVector {
         return when (categoryName.lowercase()) {
-            "ăn uống" -> Icons.Default.Restaurant
-            "di chuyển" -> Icons.Default.DirectionsBus
-            "xăng xe" -> Icons.Default.LocalGasStation
-            "mua sắm" -> Icons.Default.ShoppingBag
-            "lương" -> Icons.Default.Payments
-            "thu nhập" -> Icons.Default.AccountBalanceWallet
-            "kinh doanh" -> Icons.Default.Storefront
-            "tiền thưởng" -> Icons.Default.CardGiftcard
-            "giáo dục", "học tập" -> Icons.Default.School
-            "sức khỏe" -> Icons.Default.MedicalServices
-            "giải trí" -> Icons.Default.Movie
-            "tiền điện" -> Icons.Default.ElectricBolt
-            "tiền nước" -> Icons.Default.WaterDrop
-            "internet" -> Icons.Default.Wifi
-            "thuê nhà" -> Icons.Default.Home
-            "khác" -> Icons.Default.MoreHoriz
-            else -> Icons.Default.Category
+            "ăn uống" -> Icons.Rounded.Restaurant
+            "di chuyển", "đi lại" -> Icons.Rounded.DirectionsBus
+            "xăng xe" -> Icons.Rounded.LocalGasStation
+            "mua sắm" -> Icons.Rounded.ShoppingBag
+            "lương" -> Icons.Rounded.Payments
+            "thu nhập" -> Icons.Rounded.AccountBalanceWallet
+            "kinh doanh" -> Icons.Rounded.Storefront
+            "tiền thưởng" -> Icons.Rounded.CardGiftcard
+            "giáo dục", "học tập" -> Icons.Rounded.School
+            "sức khỏe" -> Icons.Rounded.MedicalServices
+            "giải trí" -> Icons.Rounded.Movie
+            "tiền điện" -> Icons.Rounded.ElectricBolt
+            "tiền nước" -> Icons.Rounded.WaterDrop
+            "internet" -> Icons.Rounded.Wifi
+            "thuê nhà" -> Icons.Rounded.Home
+            "khác" -> Icons.Rounded.MoreHoriz
+            else -> Icons.Rounded.Category
         }
     }
 }

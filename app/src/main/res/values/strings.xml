@@ -112,4 +112,5 @@
     <string name="invite_code_label">Mã mời</string>
     <string name="join_group_hint">Nhập mã mời 6 chữ số để tham gia nhóm quỹ chung</string>
     <string name="share_code_hint">Chia sẻ mã này để mời thành viên mới</string>
+    <string name="menu_admin">Quản trị</string>
 </resources>

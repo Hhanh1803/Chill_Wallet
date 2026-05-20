@@ -9,7 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -70,7 +70,7 @@ fun SettingsScreen(
                 title = { Text(stringResource(R.string.settings_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onOpenDrawer) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
+                        Icon(Icons.Rounded.Menu, contentDescription = "Menu")
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -114,7 +114,7 @@ fun SettingsScreen(
                             )
                         } else {
                             Icon(
-                                Icons.Default.Person,
+                                Icons.Rounded.Person,
                                 contentDescription = null,
                                 tint = PinkPrimary,
                                 modifier = Modifier.size(32.dp)
@@ -139,13 +139,13 @@ fun SettingsScreen(
 
             SettingsGroup(title = stringResource(R.string.account_group)) {
                 SettingsItem(
-                    icon = Icons.Default.Lock,
+                    icon = Icons.Rounded.Lock,
                     title = stringResource(R.string.change_password),
                     subtitle = stringResource(R.string.update_password_subtitle),
                     onClick = { showChangePasswordDialog = true }
                 )
                 SettingsItem(
-                    icon = Icons.Default.Email,
+                    icon = Icons.Rounded.Email,
                     title = stringResource(R.string.update_email),
                     onClick = { showUpdateEmailDialog = true }
                 )
@@ -153,13 +153,13 @@ fun SettingsScreen(
 
             SettingsGroup(title = stringResource(R.string.app_group)) {
                 SettingsItem(
-                    icon = Icons.Default.Language,
+                    icon = Icons.Rounded.Language,
                     title = stringResource(R.string.language),
                     subtitle = selectedLanguage,
                     onClick = { showLanguageDialog = true }
                 )
                 SettingsItem(
-                    icon = Icons.Default.Notifications,
+                    icon = Icons.Rounded.Notifications,
                     title = stringResource(R.string.notifications),
                     trailing = {
                         Switch(
@@ -172,7 +172,7 @@ fun SettingsScreen(
                     }
                 )
                 SettingsItem(
-                    icon = Icons.Default.Palette,
+                    icon = Icons.Rounded.Palette,
                     title = stringResource(R.string.dark_mode),
                     trailing = {
                         Switch(
@@ -188,14 +188,14 @@ fun SettingsScreen(
 
             SettingsGroup(title = stringResource(R.string.other_group)) {
                 SettingsItem(
-                    icon = Icons.Default.Info,
+                    icon = Icons.Rounded.Info,
                     title = stringResource(R.string.about_app),
                     onClick = { 
                         Toast.makeText(context, "Chill Wallet v1.0.0 - DACS3", Toast.LENGTH_SHORT).show()
                     }
                 )
                 SettingsItem(
-                    icon = Icons.Default.Star,
+                    icon = Icons.Rounded.Star,
                     title = stringResource(R.string.rate_app),
                     onClick = { 
                         Toast.makeText(context, "Cảm ơn bạn đã ủng hộ!", Toast.LENGTH_SHORT).show()
@@ -231,10 +231,11 @@ fun SettingsScreen(
                         visualTransformation = if (oldPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
                             IconButton(onClick = { oldPasswordVisible = !oldPasswordVisible }) {
-                                Icon(if (oldPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, null)
+                                Icon(if (oldPasswordVisible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility, null)
                             }
                         },
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PinkPrimary, focusedLabelColor = PinkPrimary)
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PinkPrimary, focusedLabelColor = PinkPrimary),
+                        shape = RoundedCornerShape(16.dp)
                     )
                     OutlinedTextField(
                         value = newPassword,
@@ -245,10 +246,11 @@ fun SettingsScreen(
                         visualTransformation = if (newPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
                             IconButton(onClick = { newPasswordVisible = !newPasswordVisible }) {
-                                Icon(if (newPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, null)
+                                Icon(if (newPasswordVisible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility, null)
                             }
                         },
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PinkPrimary, focusedLabelColor = PinkPrimary)
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PinkPrimary, focusedLabelColor = PinkPrimary),
+                        shape = RoundedCornerShape(16.dp)
                     )
                     OutlinedTextField(
                         value = confirmPassword,
@@ -257,7 +259,8 @@ fun SettingsScreen(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = if (newPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PinkPrimary, focusedLabelColor = PinkPrimary)
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PinkPrimary, focusedLabelColor = PinkPrimary),
+                        shape = RoundedCornerShape(16.dp)
                     )
                 }
             },
@@ -368,7 +371,8 @@ fun SettingsScreen(
                     label = { Text(stringResource(R.string.new_email)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PinkPrimary, focusedLabelColor = PinkPrimary)
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PinkPrimary, focusedLabelColor = PinkPrimary),
+                    shape = RoundedCornerShape(16.dp)
                 )
             },
             confirmButton = {
@@ -474,7 +478,7 @@ fun SettingsItem(
             trailing()
         } else if (onClick != null) {
             Icon(
-                Icons.Default.ChevronRight,
+                Icons.Rounded.ChevronRight,
                 contentDescription = null,
                 tint = Color.LightGray,
                 modifier = Modifier.size(20.dp)

@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -12,6 +13,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(val route: String, val title: String = "", val icon: ImageVector? = null) {
+    object Welcome : Screen("welcome")
     object Login : Screen("login")
     object Register : Screen("register")
     object Home : Screen("home", "Trang chủ", Icons.Default.Home)
@@ -26,4 +28,5 @@ sealed class Screen(val route: String, val title: String = "", val icon: ImageVe
     object GroupDetail : Screen("group_detail/{groupId}", "Chi tiết nhóm")
     object AddGroupTransaction : Screen("add_group_transaction/{groupId}", "Thêm giao dịch nhóm")
     object QRScanner : Screen("qr_scanner", "Quét QR")
+    object Admin : Screen("admin_panel", "Quản trị", Icons.Default.AdminPanelSettings)
 }

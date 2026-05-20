@@ -4,10 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,7 +37,7 @@ fun BudgetScreen(
     val transactions by viewModel.allTransactions.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
     
-    val themePrimary = PinkDark
+    val themePrimary = MaterialTheme.colorScheme.primary
 
     Scaffold(
         topBar = {
@@ -51,7 +51,7 @@ fun BudgetScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onOpenDrawer) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = themePrimary)
+                        Icon(Icons.Rounded.Menu, contentDescription = "Menu", tint = themePrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -62,9 +62,9 @@ fun BudgetScreen(
                 onClick = { showAddDialog = true },
                 containerColor = themePrimary,
                 contentColor = Color.White,
-                shape = androidx.compose.foundation.shape.CircleShape
+                shape = CircleShape
             ) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_budget), modifier = Modifier.size(30.dp))
+                Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.add_budget), modifier = Modifier.size(30.dp))
             }
         }
     ) { paddingValues ->
@@ -77,7 +77,7 @@ fun BudgetScreen(
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
-                            Icons.Default.AccountBalanceWallet, 
+                            Icons.Rounded.AccountBalanceWallet,
                             null, 
                             modifier = Modifier.size(80.dp), 
                             tint = Color.LightGray.copy(alpha = 0.5f)
@@ -130,12 +130,12 @@ fun BudgetScreen(
 fun BudgetCard(budget: Budget, spent: Double) {
     val progress = if (budget.limitAmount > 0) (spent / budget.limitAmount).toFloat() else 0f
     val isOverBudget = progress > 1f
-    val accentColor = if (isOverBudget) Color(0xFFE57373) else PinkDark
+    val accentColor = if (isOverBudget) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
@@ -146,7 +146,7 @@ fun BudgetCard(budget: Budget, spent: Double) {
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
-                        shape = androidx.compose.foundation.shape.CircleShape,
+                        shape = CircleShape,
                         color = accentColor.copy(alpha = 0.12f),
                         modifier = Modifier.size(44.dp)
                     ) {
@@ -164,14 +164,14 @@ fun BudgetCard(budget: Budget, spent: Double) {
                         budget.categoryName, 
                         style = MaterialTheme.typography.titleMedium, 
                         fontWeight = FontWeight.Bold,
-                        color = DarkText
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Text(
                     AppUtils.formatCurrency(budget.limitAmount), 
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.ExtraBold,
-                    color = DarkText
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
             
@@ -195,10 +195,10 @@ fun BudgetCard(budget: Budget, spent: Double) {
                 verticalAlignment = Alignment.Bottom
             ) {
                 Column {
-                    Text(stringResource(R.string.used), style = MaterialTheme.typography.labelSmall, color = MediumText)
+                    Text(stringResource(R.string.used), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
                         AppUtils.formatCurrency(spent), 
-                        color = if (isOverBudget) Color(0xFFE57373) else DarkText,
+                        color = if (isOverBudget) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )
@@ -206,7 +206,7 @@ fun BudgetCard(budget: Budget, spent: Double) {
                 
                 Surface(
                     color = accentColor.copy(alpha = 0.15f),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
                         "${(progress * 100).toInt()}%", 
@@ -250,7 +250,7 @@ fun AddBudgetDialog(
                         leadingIcon = { Icon(AppUtils.getCategoryIcon(category), null, tint = themePrimary) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                         modifier = Modifier.fillMaxWidth().menuAnchor(),
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = themePrimary,
                             focusedLabelColor = themePrimary
@@ -259,7 +259,7 @@ fun AddBudgetDialog(
                     ExposedDropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false },
-                        modifier = Modifier.background(Color.White)
+                        modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                     ) {
                         expenseCategories.forEach { cat ->
                             DropdownMenuItem(
@@ -320,7 +320,7 @@ fun AddBudgetDialog(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = themePrimary,
                         focusedLabelColor = themePrimary
@@ -331,7 +331,7 @@ fun AddBudgetDialog(
         confirmButton = {
             Button(
                 onClick = { onConfirm(category, amount.toDoubleOrNull() ?: 0.0) },
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = themePrimary)
             ) {
                 Text(stringResource(R.string.setup))
@@ -342,7 +342,7 @@ fun AddBudgetDialog(
                 Text(stringResource(R.string.cancel), color = Color.Gray)
             }
         },
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
-        containerColor = Color.White
+        shape = RoundedCornerShape(28.dp),
+        containerColor = MaterialTheme.colorScheme.surface
     )
 }

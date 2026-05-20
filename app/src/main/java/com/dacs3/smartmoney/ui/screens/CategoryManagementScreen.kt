@@ -103,22 +103,40 @@ fun CategoryManagementScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 80.dp)
-            ) {
-                items(currentDisplayNames) { categoryName ->
-                    val customCat = customCategories.find { it.name == categoryName && it.type == selectedType }
-                    val isDefault = categoryName in defaultNames
-                    
-                    CategoryItem(
-                        name = categoryName,
-                        isDefault = isDefault,
-                        themeColor = currentThemeColor,
-                        onDelete = {
-                            customCat?.let { viewModel.deleteCategory(it.id) }
-                        }
-                    )
+            if (currentDisplayNames.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            Icons.Default.Category,
+                            null,
+                            modifier = Modifier.size(80.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            "Chưa có danh mục nào",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 80.dp)
+                ) {
+                    items(currentDisplayNames) { categoryName ->
+                        val customCat = customCategories.find { it.name == categoryName && it.type == selectedType }
+                        val isDefault = categoryName in defaultNames
+                        
+                        CategoryItem(
+                            name = categoryName,
+                            isDefault = isDefault,
+                            themeColor = currentThemeColor,
+                            onDelete = {
+                                customCat?.let { viewModel.deleteCategory(it.id) }
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -144,8 +162,8 @@ fun CategoryItem(name: String, isDefault: Boolean, themeColor: Color, onDelete: 
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -172,9 +190,9 @@ fun CategoryItem(name: String, isDefault: Boolean, themeColor: Color, onDelete: 
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
-                    Text(name, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.DarkGray)
+                    Text(name, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
                     if (isDefault) {
-                        Text("Mặc định", fontSize = 11.sp, color = Color.LightGray)
+                        Text("Mặc định", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                     } else {
                         Text("Tùy chỉnh", fontSize = 11.sp, color = themeColor)
                     }
@@ -201,7 +219,7 @@ fun AddCategoryDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Thêm danh mục mới", fontWeight = FontWeight.Bold) },
+        title = { Text("Thêm danh mục mới", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text(
@@ -217,7 +235,9 @@ fun AddCategoryDialog(
                     shape = RoundedCornerShape(16.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = themeColor,
-                        focusedLabelColor = themeColor
+                        focusedLabelColor = themeColor,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
                     )
                 )
             }
@@ -234,10 +254,10 @@ fun AddCategoryDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("HỦY", color = Color.Gray)
+                Text("HỦY", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
-        shape = RoundedCornerShape(24.dp),
-        containerColor = Color.White
+        shape = RoundedCornerShape(28.dp),
+        containerColor = MaterialTheme.colorScheme.surface
     )
 }

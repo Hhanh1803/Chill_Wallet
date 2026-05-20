@@ -7,13 +7,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material.icons.filled.VpnKey
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,8 +26,6 @@ import coil.compose.AsyncImage
 import com.dacs3.smartmoney.R
 import com.dacs3.smartmoney.data.model.GroupFund
 import com.dacs3.smartmoney.data.remote.FirebaseSource
-import com.dacs3.smartmoney.ui.theme.PinkPrimary
-import com.dacs3.smartmoney.ui.theme.SoftGray
 import com.dacs3.smartmoney.util.AppUtils
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -72,7 +65,7 @@ fun GroupFundScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onOpenDrawer) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = MaterialTheme.colorScheme.primary)
+                        Icon(Icons.Rounded.Menu, contentDescription = "Menu", tint = MaterialTheme.colorScheme.primary)
                     }
                 }
             )
@@ -83,25 +76,28 @@ fun GroupFundScreen(
                     onClick = { onNavigateToScanner() },
                     modifier = Modifier.padding(bottom = 8.dp),
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    shape = CircleShape
+                    shape = CircleShape,
+                    elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 2.dp)
                 ) {
-                    Icon(Icons.Default.QrCodeScanner, contentDescription = stringResource(R.string.scan_qr))
+                    Icon(Icons.Rounded.QrCodeScanner, contentDescription = stringResource(R.string.scan_qr), tint = MaterialTheme.colorScheme.onSecondaryContainer)
                 }
                 SmallFloatingActionButton(
                     onClick = { showJoinDialog = true },
                     modifier = Modifier.padding(bottom = 8.dp),
                     containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                    shape = CircleShape
+                    shape = CircleShape,
+                    elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 2.dp)
                 ) {
-                    Icon(Icons.Default.VpnKey, contentDescription = stringResource(R.string.enter_invite_code))
+                    Icon(Icons.Rounded.VpnKey, contentDescription = stringResource(R.string.enter_invite_code), tint = MaterialTheme.colorScheme.onTertiaryContainer)
                 }
                 FloatingActionButton(
                     onClick = { showCreateDialog = true },
-                    containerColor = PinkPrimary,
-                    contentColor = Color.White,
-                    shape = RoundedCornerShape(16.dp)
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    shape = RoundedCornerShape(24.dp),
+                    elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.create_group))
+                    Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.create_group))
                 }
             }
         }
@@ -139,7 +135,7 @@ fun GroupFundScreen(
                     Surface(
                         modifier = Modifier.size(48.dp),
                         shape = CircleShape,
-                        color = PinkPrimary.copy(alpha = 0.1f)
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                     ) {
                         if (user?.photoUrl != null) {
                             AsyncImage(
@@ -151,9 +147,9 @@ fun GroupFundScreen(
                         } else {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    Icons.Default.Person,
+                                    Icons.Rounded.Person,
                                     contentDescription = null,
-                                    tint = PinkPrimary,
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(24.dp)
                                 )
                             }
@@ -182,10 +178,10 @@ fun GroupFundScreen(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
-                                Icons.Default.Group,
+                                Icons.Rounded.Group,
                                 null,
-                                modifier = Modifier.size(64.dp),
-                                tint = Color.LightGray
+                                modifier = Modifier.size(80.dp),
+                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(stringResource(R.string.no_groups), color = Color.Gray)
@@ -254,7 +250,7 @@ fun GroupItem(group: GroupFund, onClick: () -> Unit) {
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
-                        imageVector = Icons.Default.Group,
+                        imageVector = Icons.Rounded.Group,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(26.dp)
@@ -309,7 +305,7 @@ fun GroupItem(group: GroupFund, onClick: () -> Unit) {
                     fontSize = 16.sp
                 )
                 Icon(
-                    Icons.Default.ChevronRight,
+                    Icons.AutoMirrored.Rounded.KeyboardArrowRight,
                     null,
                     tint = Color.LightGray,
                     modifier = Modifier.size(16.dp)
@@ -327,12 +323,14 @@ fun CreateGroupDialog(onDismiss: () -> Unit, onCreate: (String, String) -> Unit)
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(28.dp),
+        containerColor = MaterialTheme.colorScheme.surface,
         title = { 
             Text(
                 stringResource(R.string.create_group),
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface
             ) 
         },
         text = {
@@ -342,14 +340,26 @@ fun CreateGroupDialog(onDismiss: () -> Unit, onCreate: (String, String) -> Unit)
                     onValueChange = { name = it },
                     label = { Text(stringResource(R.string.group_name)) },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                    )
                 )
                 OutlinedTextField(
                     value = desc,
                     onValueChange = { desc = it },
                     label = { Text(stringResource(R.string.group_description)) },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                    )
                 )
             }
         },
@@ -357,9 +367,9 @@ fun CreateGroupDialog(onDismiss: () -> Unit, onCreate: (String, String) -> Unit)
             Button(
                 onClick = { if (name.isNotBlank()) onCreate(name, desc) },
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PinkPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text(stringResource(R.string.save), fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.save), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
             }
         },
         dismissButton = {
@@ -381,12 +391,14 @@ fun JoinGroupDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         shape = RoundedCornerShape(28.dp),
+        containerColor = MaterialTheme.colorScheme.surface,
         title = { 
             Text(
                 stringResource(R.string.join_group),
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface
             ) 
         },
         text = {
@@ -394,7 +406,7 @@ fun JoinGroupDialog(
                 Text(
                     stringResource(R.string.join_group_hint),
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
@@ -408,9 +420,16 @@ fun JoinGroupDialog(
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 4.sp,
-                        fontSize = 20.sp
+                        fontSize = 20.sp,
+                        color = MaterialTheme.colorScheme.onSurface
                     ),
-                    singleLine = true
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                    )
                 )
             }
         },
@@ -419,9 +438,9 @@ fun JoinGroupDialog(
                 onClick = { if (code.length == 6) onJoin(code) },
                 enabled = code.length == 6,
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PinkPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text(stringResource(R.string.join_group), fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.join_group), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
             }
         },
         dismissButton = {

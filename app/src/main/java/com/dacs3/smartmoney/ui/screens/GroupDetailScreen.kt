@@ -7,7 +7,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.rounded.ReceiptLong
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -44,13 +45,12 @@ fun GroupDetailScreen(
     val firebaseSource = remember { FirebaseSource() }
     var group by remember { mutableStateOf<GroupFund?>(null) }
     var showQRDialog by remember { mutableStateOf(false) }
+    var showMembersDialog by remember { mutableStateOf(false) }
     val transactions by firebaseSource.getGroupTransactionsRealtime(groupId).collectAsState(initial = emptyList())
 
     LaunchedEffect(groupId) {
-        // Lấy thông tin nhóm (có thể dùng realtime hoặc get một lần)
-        // Ở đây để đơn giản ta lấy từ danh sách tham gia
-        firebaseSource.getJoinedGroupsRealtime().collect { groups ->
-            group = groups.find { it.groupId == groupId }
+        firebaseSource.getGroupRealtime(groupId).collect { 
+            group = it
         }
     }
 
@@ -67,18 +67,29 @@ fun GroupDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Icon(Icons.Rounded.ArrowBackIosNew, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { showMembersDialog = true }) {
+                        Icon(Icons.Rounded.Groups, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     }
                 }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { onNavigateToAddTransaction(groupId) }, containerColor = PinkPrimary) {
-                Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
+            FloatingActionButton(
+                onClick = { onNavigateToAddTransaction(groupId) },
+                containerColor = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(24.dp),
+                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp)
+            ) {
+                Icon(Icons.Rounded.Add, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
             }
         }
     ) { padding ->
-        group?.let { currentGroup ->
+        val currentGroup = group
+        if (currentGroup != null) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -101,8 +112,24 @@ fun GroupDetailScreen(
 
                 if (transactions.isEmpty()) {
                     item {
-                        Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                            Text(stringResource(R.string.no_transactions), color = Color.Gray)
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 40.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.ReceiptLong,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                modifier = Modifier.size(100.dp)
+                            )
+                            Spacer(Modifier.height(16.dp))
+                            Text(
+                                stringResource(R.string.no_transactions),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
+                            )
                         }
                     }
                 } else {
@@ -119,8 +146,18 @@ fun GroupDetailScreen(
                     onDismiss = { showQRDialog = false }
                 )
             }
-        } ?: Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+
+            if (showMembersDialog) {
+                GroupMembersDialog(
+                    memberUids = currentGroup.memberUids,
+                    onDismiss = { showMembersDialog = false },
+                    firebaseSource = firebaseSource
+                )
+            }
+        } else {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
         }
     }
 }
@@ -131,15 +168,15 @@ fun GroupOverviewCard(group: GroupFund, onShowQR: () -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Box(
             modifier = Modifier
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
-                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.25f)
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)
                         )
                     )
                 )
@@ -167,18 +204,18 @@ fun GroupOverviewCard(group: GroupFund, onShowQR: () -> Unit) {
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
                     ) {
-                        Icon(Icons.Default.QrCode2, null, tint = MaterialTheme.colorScheme.primary)
+                        Icon(Icons.Rounded.QrCode2, null, tint = MaterialTheme.colorScheme.primary)
                     }
                 }
                 Spacer(Modifier.height(16.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Row(Modifier.padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.VpnKey, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
-                            Spacer(Modifier.width(4.dp))
+                        Row(Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Rounded.VpnKey, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(6.dp))
                             Text(
                                 group.inviteCode,
                                 color = MaterialTheme.colorScheme.primary,
@@ -211,6 +248,8 @@ fun InviteQRCodeDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(28.dp),
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
             Text(
                 stringResource(R.string.invite_code_qr),
@@ -241,18 +280,90 @@ fun InviteQRCodeDialog(
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 4.sp,
-                    color = PinkPrimary
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Text(
                     stringResource(R.string.share_code_hint),
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.close))
+                Text(stringResource(R.string.close), color = MaterialTheme.colorScheme.primary)
+            }
+        }
+    )
+}
+
+@Composable
+fun GroupMembersDialog(
+    memberUids: List<String>,
+    onDismiss: () -> Unit,
+    firebaseSource: FirebaseSource
+) {
+    val members by firebaseSource.getGroupMembersRealtime(memberUids).collectAsState(initial = emptyList())
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(28.dp),
+        containerColor = MaterialTheme.colorScheme.surface,
+        title = {
+            Text(
+                "Thành viên nhóm",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            if (members.isEmpty() && memberUids.isNotEmpty()) {
+                Box(Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(members) { user ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    user.getBestName().take(1).uppercase(),
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                            Spacer(Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    user.getBestName(),
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    user.email,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.close), color = MaterialTheme.colorScheme.primary)
             }
         }
     )
@@ -291,10 +402,15 @@ fun GroupTransactionItem(transaction: GroupTransaction) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp, vertical = 6.dp),
+            .padding(horizontal = 4.dp, vertical = 4.dp),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = if (transaction.type == "INCOME") 
+                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f) 
+            else 
+                MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)
     ) {
         Row(
             modifier = Modifier
@@ -303,7 +419,7 @@ fun GroupTransactionItem(transaction: GroupTransaction) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Ảnh đại diện người tạo với Badge danh mục
-            Box(modifier = Modifier.size(54.dp)) {
+            Box(modifier = Modifier.size(52.dp)) {
             if (creatorPhotoUrl.isNotEmpty()) {
                 AsyncImage(
                     model = creatorPhotoUrl,
@@ -312,16 +428,21 @@ fun GroupTransactionItem(transaction: GroupTransaction) {
                         .fillMaxSize()
                         .clip(CircleShape),
                     contentScale = ContentScale.Crop,
-                    error = rememberVectorPainter(Icons.Default.AccountCircle)
+                    error = rememberVectorPainter(Icons.Rounded.AccountCircle)
                 )
             } else {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(SoftGray, CircleShape),
+                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Person, null, tint = Color.Gray, modifier = Modifier.size(26.dp))
+                    Icon(
+                        Icons.Rounded.Person, 
+                        null, 
+                        tint = MaterialTheme.colorScheme.primary, 
+                        modifier = Modifier.size(26.dp)
+                    )
                 }
             }
                 
@@ -375,7 +496,7 @@ fun GroupTransactionItem(transaction: GroupTransaction) {
                 (if (transaction.type == "INCOME") "+" else "-") + AppUtils.formatCurrency(transaction.amount),
                 fontWeight = FontWeight.Black,
                 fontSize = 16.sp,
-                color = if (transaction.type == "INCOME") MintDark else PinkDark
+                color = if (transaction.type == "INCOME") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
             )
         }
     }

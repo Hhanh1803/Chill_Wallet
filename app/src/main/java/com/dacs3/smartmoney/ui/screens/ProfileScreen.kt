@@ -11,18 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cake
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Wc
-import androidx.compose.material.icons.filled.Work
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -142,7 +131,7 @@ fun ProfileScreen(
                 title = { Text(stringResource(R.string.profile_title), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onOpenDrawer) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
+                        Icon(Icons.Rounded.Menu, contentDescription = "Menu")
                     }
                 },
                 actions = {
@@ -186,7 +175,7 @@ fun ProfileScreen(
                                 }
                             }
                         }) {
-                            Icon(Icons.Default.Check, contentDescription = "Save", tint = PinkPrimary)
+                            Icon(Icons.Rounded.Check, contentDescription = "Save", tint = PinkPrimary)
                         }
                     } else {
                         TextButton(onClick = { isEditing = true }) {
@@ -231,8 +220,8 @@ fun ProfileScreen(
                         .fillMaxSize()
                         .clip(CircleShape),
                     contentScale = ContentScale.Crop,
-                    placeholder = rememberVectorPainter(Icons.Default.Person),
-                    error = rememberVectorPainter(Icons.Default.Person)
+                    placeholder = rememberVectorPainter(Icons.Rounded.Person),
+                    error = rememberVectorPainter(Icons.Rounded.Person)
                 )
                 
                 if (isEditing) {
@@ -243,7 +232,7 @@ fun ProfileScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            Icons.Default.CameraAlt,
+                            Icons.Rounded.CameraAlt,
                             contentDescription = "Change Photo",
                             tint = Color.White
                         )
@@ -256,10 +245,10 @@ fun ProfileScreen(
             // Info Section
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
+                shape = RoundedCornerShape(32.dp),
                 color = Color.White
             ) {
-                Column(modifier = Modifier.padding(20.dp)) {
+                Column(modifier = Modifier.padding(24.dp)) {
                     Text(
                         text = stringResource(R.string.basic_info),
                         style = MaterialTheme.typography.titleMedium,
@@ -271,7 +260,7 @@ fun ProfileScreen(
                     ProfileField(
                         label = stringResource(R.string.full_name),
                         value = displayName,
-                        icon = Icons.Default.Person,
+                        icon = Icons.Rounded.Person,
                         isEditing = isEditing,
                         onValueChange = { displayName = it }
                     )
@@ -281,7 +270,7 @@ fun ProfileScreen(
                     ProfileField(
                         label = stringResource(R.string.email),
                         value = email,
-                        icon = Icons.Default.Email,
+                        icon = Icons.Rounded.Email,
                         isEditing = false,
                         onValueChange = {}
                     )
@@ -291,7 +280,7 @@ fun ProfileScreen(
                     ProfileField(
                         label = stringResource(R.string.phone_number),
                         value = phoneNumber,
-                        icon = Icons.Default.Phone,
+                        icon = Icons.Rounded.Phone,
                         isEditing = isEditing,
                         onValueChange = { phoneNumber = it }
                     )
@@ -301,7 +290,7 @@ fun ProfileScreen(
                     ProfileField(
                         label = stringResource(R.string.address),
                         value = address,
-                        icon = Icons.Default.LocationOn,
+                        icon = Icons.Rounded.LocationOn,
                         isEditing = isEditing,
                         onValueChange = { address = it }
                     )
@@ -311,7 +300,7 @@ fun ProfileScreen(
                     ProfileField(
                         label = stringResource(R.string.bio),
                         value = bio,
-                        icon = Icons.Default.Description,
+                        icon = Icons.Rounded.Description,
                         isEditing = isEditing,
                         onValueChange = { bio = it }
                     )
@@ -321,7 +310,7 @@ fun ProfileScreen(
                     ProfileField(
                         label = stringResource(R.string.gender),
                         value = gender,
-                        icon = Icons.Default.Wc,
+                        icon = Icons.Rounded.Wc,
                         isEditing = isEditing,
                         onValueChange = { gender = it }
                     )
@@ -331,7 +320,7 @@ fun ProfileScreen(
                     ProfileField(
                         label = stringResource(R.string.birthday),
                         value = birthday,
-                        icon = Icons.Default.Cake,
+                        icon = Icons.Rounded.Cake,
                         isEditing = isEditing,
                         onValueChange = { birthday = it },
                         isDatePicker = true,
@@ -343,7 +332,7 @@ fun ProfileScreen(
                     ProfileField(
                         label = stringResource(R.string.occupation),
                         value = occupation,
-                        icon = Icons.Default.Work,
+                        icon = Icons.Rounded.Work,
                         isEditing = isEditing,
                         onValueChange = { occupation = it }
                     )
@@ -353,7 +342,7 @@ fun ProfileScreen(
                     ProfileField(
                         label = stringResource(R.string.join_date),
                         value = joinDate,
-                        icon = Icons.Default.CalendarMonth,
+                        icon = Icons.Rounded.CalendarMonth,
                         isEditing = false,
                         onValueChange = {}
                     )
@@ -407,7 +396,8 @@ fun ProfileField(
                         focusedLabelColor = PinkPrimary
                     ),
                     singleLine = true,
-                    readOnly = isDatePicker
+                    readOnly = isDatePicker,
+                    shape = RoundedCornerShape(16.dp)
                 )
             } else {
                 Text(

@@ -47,6 +47,8 @@ import com.dacs3.smartmoney.ui.screens.*
 import com.dacs3.smartmoney.ui.theme.*
 import com.dacs3.smartmoney.viewmodel.TransactionViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.dacs3.smartmoney.ui.screens.AdminScreen
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -60,15 +62,29 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val transactionViewModel: TransactionViewModel = viewModel()
 
-                val startDestination = Screen.Login.route
+                val startDestination = Screen.Welcome.route
 
                 NavHost(navController = navController, startDestination = startDestination) {
+                    composable(Screen.Welcome.route) {
+                        WelcomeScreen(
+                            onNavigateToLogin = { navController.navigate(Screen.Login.route) },
+                            onNavigateToRegister = { navController.navigate(Screen.Register.route) }
+                        )
+                    }
                     composable(Screen.Login.route) {
                         LoginScreen(
                             onLoginSuccess = {
-                                transactionViewModel.reloadAllData()
-                                navController.navigate(Screen.Home.route) {
-                                    popUpTo(Screen.Login.route) { inclusive = true }
+                                val user = FirebaseAuth.getInstance().currentUser
+                                user?.uid?.let { uid ->
+                                    FirebaseFirestore.getInstance().collection("users").document(uid).get()
+                                        .addOnSuccessListener { doc ->
+                                            val role = doc.getString("role") ?: "USER"
+                                            transactionViewModel.reloadAllData()
+                                            val destination = if (role == "ADMIN") Screen.Admin.route else Screen.Home.route
+                                            navController.navigate(destination) {
+                                                popUpTo(Screen.Login.route) { inclusive = true }
+                                            }
+                                        }
                                 }
                             },
                             onNavigateToRegister = { navController.navigate(Screen.Register.route) }
@@ -148,6 +164,14 @@ class MainActivity : ComponentActivity() {
                                 onOpenDrawer = onOpenDrawer
                             )
                         }
+                    }
+                    composable(Screen.Admin.route) {
+                        AdminScreen(onLogout = {
+                            FirebaseAuth.getInstance().signOut()
+                            navController.navigate(Screen.Login.route) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        })
                     }
                     composable(Screen.GroupFund.route) {
                         MainScaffold(navController) { onOpenDrawer ->
@@ -240,6 +264,16 @@ fun MainScaffold(
                         .padding(horizontal = 16.dp)
                 ) {
                     val user = FirebaseAuth.getInstance().currentUser
+                    var userRole by remember { mutableStateOf("USER") }
+
+                    LaunchedEffect(user?.uid) {
+                        user?.uid?.let { uid ->
+                            FirebaseFirestore.getInstance().collection("users").document(uid).get()
+                                .addOnSuccessListener { doc ->
+                                    userRole = doc.getString("role") ?: "USER"
+                                }
+                        }
+                    }
                     
                     Spacer(modifier = Modifier.height(48.dp))
                     
@@ -298,11 +332,14 @@ fun MainScaffold(
                         Screen.GroupFund to R.string.group_fund_title,
                         Screen.Stats to R.string.menu_stats,
                         Screen.Budget to R.string.menu_budget,
-                        Screen.CategoryManagement to R.string.menu_categories,
                         Screen.Settings to R.string.menu_settings
-                    ).forEach { (screen, labelRes) ->
+                    ).let { baseList ->
+                        if (userRole == "ADMIN") {
+                            baseList + (Screen.Admin to R.string.menu_admin)
+                        } else baseList
+                    }.forEach { (screen, labelRes) ->
                         DrawerMenuItem(
-                            label = stringResource(labelRes),
+                            label = if (screen == Screen.Admin) "Quản trị" else stringResource(labelRes),
                             icon = screen.icon ?: Icons.Default.Menu,
                             selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                             onClick = {

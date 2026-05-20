@@ -9,14 +9,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.TrendingDown
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.automirrored.rounded.List
+import androidx.compose.material.icons.automirrored.rounded.TrendingDown
+import androidx.compose.material.icons.automirrored.rounded.TrendingUp
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -87,7 +83,7 @@ fun HomeScreen(
                             isSearchExpanded = false
                             viewModel.onSearchQueryChange("")
                         }) {
-                            Icon(Icons.Default.Close, contentDescription = "Đóng tìm kiếm")
+                            Icon(Icons.Rounded.Close, contentDescription = "Đóng tìm kiếm")
                         }
                     }
                 )
@@ -103,21 +99,22 @@ fun HomeScreen(
                     },
                     navigationIcon = {
                         IconButton(onClick = onOpenDrawer) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menu", tint = MaterialTheme.colorScheme.primary)
+                            Icon(Icons.Rounded.Menu, contentDescription = "Menu", tint = MaterialTheme.colorScheme.primary)
                         }
                     },
                     actions = {
                         IconButton(onClick = { isSearchExpanded = true }) {
-                            Icon(Icons.Default.Search, contentDescription = "Tìm kiếm", tint = MaterialTheme.colorScheme.primary)
+                            Icon(Icons.Rounded.Search, contentDescription = "Tìm kiếm", tint = MaterialTheme.colorScheme.primary)
                         }
                         
                         Box {
                             IconButton(onClick = { isFilterMenuExpanded = true }) {
-                                Icon(Icons.Default.FilterList, contentDescription = "Lọc danh mục", tint = MaterialTheme.colorScheme.primary)
+                                Icon(Icons.Rounded.FilterList, contentDescription = "Lọc danh mục", tint = MaterialTheme.colorScheme.primary)
                             }
                             DropdownMenu(
                                 expanded = isFilterMenuExpanded,
-                                onDismissRequest = { isFilterMenuExpanded = false }
+                                onDismissRequest = { isFilterMenuExpanded = false },
+                                shape = RoundedCornerShape(20.dp)
                             ) {
                                 categories.forEach { category ->
                                     DropdownMenuItem(
@@ -134,7 +131,7 @@ fun HomeScreen(
                                                     modifier = Modifier.size(24.dp)
                                                 )
                                             } else {
-                                                Icon(Icons.Default.List, null)
+                                                Icon(Icons.AutoMirrored.Rounded.List, null)
                                             }
                                         }
                                     )
@@ -215,7 +212,7 @@ fun HomeScreen(
                             } else {
                                 Box(contentAlignment = Alignment.Center) {
                                     Icon(
-                                        Icons.Default.Person,
+                                        Icons.Rounded.Person,
                                         contentDescription = null,
                                         tint = PinkPrimary,
                                         modifier = Modifier.size(24.dp)
@@ -240,7 +237,7 @@ fun HomeScreen(
                                 onClick = { viewModel.onCategoryChange(category) },
                                 label = { Text(category, fontSize = 13.sp) },
                                 leadingIcon = if (isSelected) {
-                                    { Icon(Icons.Default.FilterList, null, modifier = Modifier.size(16.dp)) }
+                                    { Icon(Icons.Rounded.FilterList, null, modifier = Modifier.size(16.dp)) }
                                 } else null,
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
@@ -308,15 +305,15 @@ fun HomeScreen(
                                     SummaryMiniCard(
                                         label = stringResource(R.string.income),
                                         amount = totalIncome,
-                                        color = MintDark,
-                                        icon = Icons.AutoMirrored.Filled.TrendingUp,
+                                        color = MintPrimary,
+                                        icon = Icons.AutoMirrored.Rounded.TrendingUp,
                                         modifier = Modifier.weight(1f)
                                     )
                                     SummaryMiniCard(
                                         label = stringResource(R.string.expense),
                                         amount = totalExpense,
-                                        color = PinkDark,
-                                        icon = Icons.AutoMirrored.Filled.TrendingDown,
+                                        color = PinkPrimary,
+                                        icon = Icons.AutoMirrored.Rounded.TrendingDown,
                                         modifier = Modifier.weight(1f)
                                     )
                                 }
@@ -360,10 +357,10 @@ fun HomeScreen(
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(
-                                    Icons.Default.List, 
+                                    Icons.AutoMirrored.Rounded.List,
                                     null, 
                                     modifier = Modifier.size(64.dp), 
-                                    tint = Color.LightGray
+                                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(stringResource(R.string.no_transactions), color = Color.Gray)
@@ -495,7 +492,7 @@ fun TransactionItem(
 
             Text(
                 text = (if (transaction.type == "EXPENSE") "-" else "+") + AppUtils.formatCurrency(transaction.amount),
-                color = if (transaction.type == "EXPENSE") PinkDark else MintDark,
+                color = if (transaction.type == "EXPENSE") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
                 fontWeight = FontWeight.Black,
                 fontSize = 16.sp
             )
