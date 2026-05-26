@@ -303,7 +303,7 @@ fun BackgroundOrnaments() {
         // Thêm các icon mới rải rác
         Icon(Icons.Rounded.Pets, null, tint = Color(0xFF8D6E63).copy(alpha = 0.02f), modifier = Modifier.size(50.dp).offset(x = 20.dp, y = 50.dp))
         Icon(Icons.Rounded.Celebration, null, tint = Color(0xFFFF7043).copy(alpha = 0.02f), modifier = Modifier.size(70.dp).offset(x = 320.dp, y = 200.dp))
-        Icon(Icons.Rounded.Coffee, null, tint = Color(0xFF6D4C41).copy(alpha = 0.03f), modifier = Modifier.size(45.dp).offset(x = 280.dp, y = 480.dp).rotate(10f))
+        Icon(Icons.Rounded.Coffee, null, tint = Color(0xFF6D4C41).copy(alpha = 0.03f), modifier = Modifier.size(45.dp).offset(x = 280.dp, y = 600.dp))
         Icon(Icons.Rounded.Lightbulb, null, tint = Color(0xFFFFEB3B).copy(alpha = 0.03f), modifier = Modifier.size(40.dp).offset(x = 40.dp, y = 300.dp))
         Icon(Icons.Rounded.SelfImprovement, null, tint = Color(0xFF26A69A).copy(alpha = 0.02f), modifier = Modifier.size(100.dp).offset(x = 100.dp, y = 750.dp))
         

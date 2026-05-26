@@ -402,15 +402,10 @@ fun GroupTransactionItem(transaction: GroupTransaction) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp, vertical = 4.dp),
+            .padding(horizontal = 4.dp, vertical = 2.dp),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (transaction.type == "INCOME") 
-                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f) 
-            else 
-                MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.8.dp)
     ) {
         Row(
             modifier = Modifier
@@ -419,50 +414,56 @@ fun GroupTransactionItem(transaction: GroupTransaction) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Ảnh đại diện người tạo với Badge danh mục
-            Box(modifier = Modifier.size(52.dp)) {
-            if (creatorPhotoUrl.isNotEmpty()) {
-                AsyncImage(
-                    model = creatorPhotoUrl,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop,
-                    error = rememberVectorPainter(Icons.Rounded.AccountCircle)
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Rounded.Person, 
-                        null, 
-                        tint = MaterialTheme.colorScheme.primary, 
-                        modifier = Modifier.size(26.dp)
+            Box(modifier = Modifier.size(50.dp)) {
+                if (creatorPhotoUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = creatorPhotoUrl,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop,
+                        error = rememberVectorPainter(Icons.Rounded.AccountCircle)
                     )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Rounded.Person, 
+                            null, 
+                            tint = MaterialTheme.colorScheme.primary, 
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
-            }
                 
                 // Badge icon danh mục nhỏ ở góc
-                val badgeColor = if (transaction.type == "INCOME") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
-                Box(
+                val badgeColor = if (transaction.type == "INCOME") Color(0xFF38A169) else PinkPrimary
+                Surface(
                     modifier = Modifier
-                        .size(22.dp)
-                        .align(Alignment.BottomEnd)
-                        .background(Color.White, CircleShape)
-                        .padding(2.dp)
-                        .background(badgeColor, CircleShape),
-                    contentAlignment = Alignment.Center
+                        .size(20.dp)
+                        .align(Alignment.BottomEnd),
+                    shape = CircleShape,
+                    color = Color.White,
+                    shadowElevation = 1.dp
                 ) {
-                    Icon(
-                        AppUtils.getCategoryIcon(transaction.categoryName),
-                        null,
-                        tint = Color.White,
-                        modifier = Modifier.size(12.dp)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .padding(2.dp)
+                            .background(badgeColor, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            AppUtils.getCategoryIcon(transaction.categoryName),
+                            null,
+                            tint = Color.White,
+                            modifier = Modifier.size(10.dp)
+                        )
+                    }
                 }
             }
             
@@ -470,33 +471,33 @@ fun GroupTransactionItem(transaction: GroupTransaction) {
             
             Column(Modifier.weight(1f)) {
                 Text(
-                    transaction.categoryName,
+                    text = transaction.categoryName,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color(0xFF444444)
                 )
                 
                 Text(
-                    "Bởi: ${if (creatorName.isEmpty()) "Thành viên" else creatorName} • ${AppUtils.formatDate(transaction.date)}",
+                    text = "Bởi: ${if (creatorName.isEmpty()) "Thành viên" else creatorName} • ${AppUtils.formatDate(transaction.date)}",
                     fontSize = 12.sp,
                     color = Color.Gray
                 )
                 
                 if (transaction.note.isNotBlank()) {
                     Text(
-                        transaction.note,
+                        text = transaction.note,
                         fontSize = 13.sp,
-                        color = Color.Gray,
+                        color = Color.Gray.copy(alpha = 0.8f),
                         maxLines = 1
                     )
                 }
             }
             
             Text(
-                (if (transaction.type == "INCOME") "+" else "-") + AppUtils.formatCurrency(transaction.amount),
-                fontWeight = FontWeight.Black,
+                text = (if (transaction.type == "INCOME") "+" else "-") + AppUtils.formatCurrency(transaction.amount),
+                fontWeight = FontWeight.ExtraBold,
                 fontSize = 16.sp,
-                color = if (transaction.type == "INCOME") MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary
+                color = if (transaction.type == "INCOME") Color(0xFF38A169) else PinkPrimary
             )
         }
     }

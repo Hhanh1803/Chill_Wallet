@@ -441,7 +441,7 @@ fun TransactionItem(
                 onLongClick = onLongClickAction
             ),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = Color.White), // Card trắng tinh khôi
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -450,18 +450,19 @@ fun TransactionItem(
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val iconColor = if (transaction.type == "EXPENSE") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+            val iconColor = if (transaction.type == "EXPENSE") PinkPrimary else Color(0xFF38A169)
+            
             Surface(
                 shape = CircleShape,
-                color = iconColor.copy(alpha = 0.12f),
-                modifier = Modifier.size(54.dp)
+                color = iconColor.copy(alpha = 0.08f),
+                modifier = Modifier.size(50.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = AppUtils.getCategoryIcon(transaction.categoryName),
                         contentDescription = null,
                         tint = iconColor,
-                        modifier = Modifier.size(26.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
@@ -470,21 +471,21 @@ fun TransactionItem(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    transaction.categoryName,
+                    text = transaction.categoryName,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color(0xFF444444)
                 )
                 if (transaction.note.isNotEmpty()) {
                     Text(
-                        transaction.note,
+                        text = transaction.note,
                         fontSize = 13.sp,
                         color = Color.Gray,
                         maxLines = 1
                     )
                 }
                 Text(
-                    AppUtils.formatDate(transaction.date),
+                    text = AppUtils.formatDate(transaction.date), // Bỏ .time vì class Transaction không có trường này
                     fontSize = 11.sp,
                     color = Color.LightGray
                 )
@@ -492,8 +493,8 @@ fun TransactionItem(
 
             Text(
                 text = (if (transaction.type == "EXPENSE") "-" else "+") + AppUtils.formatCurrency(transaction.amount),
-                color = if (transaction.type == "EXPENSE") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
-                fontWeight = FontWeight.Black,
+                color = if (transaction.type == "EXPENSE") PinkPrimary else Color(0xFF38A169),
+                fontWeight = FontWeight.ExtraBold,
                 fontSize = 16.sp
             )
         }
