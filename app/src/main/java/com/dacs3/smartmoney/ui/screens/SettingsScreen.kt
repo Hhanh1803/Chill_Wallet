@@ -275,7 +275,11 @@ fun SettingsScreen(
                             Toast.makeText(context, context.getString(R.string.error_password_mismatch), Toast.LENGTH_SHORT).show()
                             return@Button
                         }
-                        if (newPassword.length < 6) {
+                        val isPasswordValid = newPassword.length >= 6 && 
+                                            newPassword.any { it.isLetter() } && 
+                                            newPassword.any { it.isDigit() } && 
+                                            newPassword.any { !it.isLetterOrDigit() }
+                        if (!isPasswordValid) {
                             Toast.makeText(context, context.getString(R.string.error_password_too_short), Toast.LENGTH_SHORT).show()
                             return@Button
                         }

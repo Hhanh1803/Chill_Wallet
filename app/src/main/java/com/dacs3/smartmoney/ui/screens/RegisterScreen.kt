@@ -135,7 +135,7 @@ fun RegisterScreen(
                             !emailPattern.matcher(email).matches() -> {
                                 error = context.getString(R.string.error_invalid_email)
                             }
-                            password.length < 6 -> {
+                            !(password.length >= 6 && password.any { it.isLetter() } && password.any { it.isDigit() } && password.any { !it.isLetterOrDigit() }) -> {
                                 error = context.getString(R.string.error_password_too_short)
                             }
                             else -> {

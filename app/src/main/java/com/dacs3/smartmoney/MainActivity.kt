@@ -213,7 +213,9 @@ class MainActivity : ComponentActivity() {
                         
                         LaunchedEffect(user?.uid) {
                             if (user == null) {
-                                isAdmin = false
+                                navController.navigate(Screen.Login.route) {
+                                    popUpTo(0) { inclusive = true }
+                                }
                                 return@LaunchedEffect
                             }
                             FirebaseFirestore.getInstance().collection("users").document(user.uid).get()
@@ -233,9 +235,11 @@ class MainActivity : ComponentActivity() {
                                 }
                             })
                             false -> {
-                                LaunchedEffect(Unit) {
-                                    navController.navigate(Screen.Home.route) {
-                                        popUpTo(Screen.Admin.route) { inclusive = true }
+                                if (user != null) {
+                                    LaunchedEffect(Unit) {
+                                        navController.navigate(Screen.Home.route) {
+                                            popUpTo(Screen.Admin.route) { inclusive = true }
+                                        }
                                     }
                                 }
                             }

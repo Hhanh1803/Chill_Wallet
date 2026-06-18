@@ -11,7 +11,7 @@
     <string name="already_have_account">Đã có tài khoản? Đăng nhập</string>
     <string name="error_fill_all">Vui lòng điền đầy đủ thông tin</string>
     <string name="error_invalid_email">Email không hợp lệ</string>
-    <string name="error_password_too_short">Mật khẩu phải có ít nhất 6 ký tự</string>
+    <string name="error_password_too_short">Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ cái, số và ký tự đặc biệt</string>
     <string name="error_login_invalid_credentials">Email hoặc mật khẩu không chính xác</string>
     <string name="error_login_user_not_found">Tài khoản không tồn tại</string>
     <string name="error_login_network">Lỗi kết nối mạng. Vui lòng thử lại</string>
