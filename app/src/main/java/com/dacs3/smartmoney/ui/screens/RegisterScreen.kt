@@ -143,36 +143,40 @@ fun RegisterScreen(
                                 auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener { task ->
                                     if (task.isSuccessful) {
                                         val user = auth.currentUser
-                                        val profileUpdates = userProfileChangeRequest {
-                                            this.displayName = displayName
-                                        }
+                                        val uid = user?.uid ?: ""
                                         
-                                        user?.updateProfile(profileUpdates)?.addOnCompleteListener { profileTask ->
-                                            if (profileTask.isSuccessful) {
-                                                // Lưu vào Firestore với cấu trúc chuẩn
-                                                val userData = hashMapOf(
-                                                    "uid" to user.uid,
-                                                    "displayName" to displayName,
-                                                    "fullName" to displayName,
-                                                    "email" to email,
-                                                    "role" to "USER",
-                                                    "isLocked" to false,
-                                                    "joinDate" to System.currentTimeMillis()
-                                                )
-                                                user.uid.let { uid ->
-                                                    db.collection("users").document(uid).set(userData).addOnCompleteListener {
-                                                        isLoading = false
-                                                        onRegisterSuccess()
+                                        // Dữ liệu người dùng (TẠM THỜI ĐỂ LÀ ADMIN ĐỂ BẠN KHÔI PHỤC QUYỀN)
+                                        val userData = hashMapOf(
+                                            "uid" to uid,
+                                            "displayName" to displayName,
+                                            "fullName" to displayName,
+                                            "email" to email,
+                                            "role" to "USER", // Đã khôi phục về USER mặc định
+                                            "isLocked" to false,
+                                            "joinDate" to System.currentTimeMillis()
+                                        )
+
+                                        // Ghi vào Firestore TRƯỚC (Dùng set với merge để an toàn)
+                                        db.collection("users").document(uid)
+                                            .set(userData, com.google.firebase.firestore.SetOptions.merge())
+                                            .addOnCompleteListener { firestoreTask ->
+                                                if (firestoreTask.isSuccessful) {
+                                                    // Sau đó mới cập nhật Profile
+                                                    val profileUpdates = userProfileChangeRequest {
+                                                        this.displayName = displayName
                                                     }
+                                                    user?.updateProfile(profileUpdates)
+                                                    
+                                                    isLoading = false
+                                                    onRegisterSuccess()
+                                                } else {
+                                                    isLoading = false
+                                                    error = "Lỗi Firestore: " + (firestoreTask.exception?.localizedMessage ?: "Không thể tạo dữ liệu người dùng")
                                                 }
-                                            } else {
-                                                isLoading = false
-                                                error = profileTask.exception?.message ?: context.getString(R.string.error_update_profile)
                                             }
-                                        }
                                     } else {
                                         isLoading = false
-                                        error = task.exception?.message ?: context.getString(R.string.error_register_failed)
+                                        error = task.exception?.localizedMessage ?: "Đăng ký thất bại"
                                     }
                                 }
                             }

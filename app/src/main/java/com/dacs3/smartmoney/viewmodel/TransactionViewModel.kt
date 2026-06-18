@@ -240,15 +240,53 @@ class TransactionViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private var transactionsJob: kotlinx.coroutines.Job? = null
+    private var budgetsJob: kotlinx.coroutines.Job? = null
+    private var categoriesJob: kotlinx.coroutines.Job? = null
+
     init {
+        reloadAllData()
+    }
+
+    // CHỨC NĂNG: LẮNG NGHE DỮ LIỆU THỜI GIAN THỰC
+    fun reloadAllData() {
         loadTransactionsRealtime()
         loadBudgetsRealtime()
         loadCategoriesRealtime()
     }
 
-    // CHỨC NĂNG: QUẢN LÝ DANH MỤC
+    fun clearData() {
+        transactionsJob?.cancel()
+        budgetsJob?.cancel()
+        categoriesJob?.cancel()
+        _allTransactions.value = emptyList()
+        _budgets.value = emptyList()
+        _categories.value = emptyList()
+    }
+
+    fun loadTransactionsRealtime() {
+        transactionsJob?.cancel()
+        transactionsJob = viewModelScope.launch {
+            _isLoading.value = true
+            repository.getAllTransactionsRealtime().collect { list ->
+                _allTransactions.value = list
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun loadBudgetsRealtime() {
+        budgetsJob?.cancel()
+        budgetsJob = viewModelScope.launch {
+            repository.getBudgetsRealtime().collect { list ->
+                _budgets.value = list
+            }
+        }
+    }
+
     fun loadCategoriesRealtime() {
-        viewModelScope.launch {
+        categoriesJob?.cancel()
+        categoriesJob = viewModelScope.launch {
             repository.getCombinedCategoriesRealtime().collect { list ->
                 _categories.value = list
             }
@@ -287,30 +325,7 @@ class TransactionViewModel : ViewModel() {
         _selectedStatsType.value = typeIndex
     }
 
-    // CHỨC NĂNG: LẮNG NGHE DỮ LIỆU THỜI GIAN THỰC
-    fun reloadAllData() {
-        loadTransactionsRealtime()
-        loadBudgetsRealtime()
-        loadCategoriesRealtime()
-    }
 
-    fun loadTransactionsRealtime() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            repository.getAllTransactionsRealtime().collect { list ->
-                _allTransactions.value = list
-                _isLoading.value = false
-            }
-        }
-    }
-
-    fun loadBudgetsRealtime() {
-        viewModelScope.launch {
-            repository.getBudgetsRealtime().collect { list ->
-                _budgets.value = list
-            }
-        }
-    }
 
     // CHỨC NĂNG: THÊM KHOẢN THU CHI
     fun addNewTransaction(transaction: Transaction, onComplete: (Boolean) -> Unit) {

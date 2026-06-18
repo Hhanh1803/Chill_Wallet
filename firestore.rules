@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && (isOwner(userId) || isAdmin());
+      allow delete: if isAdmin();
+
+      // Nested collections for users
+      match /transactions/{transactionId} {
+        allow read, write: if isSignedIn() && (isOwner(userId) || isAdmin());
+      }
+
+      match /budgets/{budgetId} {
+        allow read, write: if isSignedIn() && (isOwner(userId) || isAdmin());
+      }
+
+      match /categories/{categoryId} {
+        allow read, write: if isSignedIn() && (isOwner(userId) || isAdmin());
+      }
+    }
+
+    // Groups collection
+    match /groups/{groupId} {
+      allow read: if isSignedIn() && (request.auth.uid in resource.data.memberUids || isAdmin());
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (request.auth.uid in resource.data.memberUids || isAdmin());
+      allow delete: if isSignedIn() && (resource.data.adminUid == request.auth.uid || isAdmin());
+
+      match /transactions/{transactionId} {
+        allow read, write: if isSignedIn() && (request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.memberUids || isAdmin());
+      }
+    }
+
+    // Global categories
+    match /global_categories/{categoryId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Collection Group for Admin stats
+    match /{path=**}/transactions/{transactionId} {
+      allow read: if isAdmin();
+    }
+  }
+}

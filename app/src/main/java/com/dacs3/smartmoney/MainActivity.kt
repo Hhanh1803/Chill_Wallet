@@ -75,17 +75,59 @@ class MainActivity : ComponentActivity() {
                         LoginScreen(
                             onLoginSuccess = {
                                 val user = FirebaseAuth.getInstance().currentUser
-                                user?.uid?.let { uid ->
-                                    FirebaseFirestore.getInstance().collection("users").document(uid).get()
-                                        .addOnSuccessListener { doc ->
-                                            val role = doc.getString("role") ?: "USER"
-                                            transactionViewModel.reloadAllData()
-                                            val destination = if (role == "ADMIN") Screen.Admin.route else Screen.Home.route
-                                            navController.navigate(destination) {
-                                                popUpTo(Screen.Login.route) { inclusive = true }
-                                            }
-                                        }
+                                if (user == null) {
+                                    navController.navigate(Screen.Home.route) {
+                                        popUpTo(Screen.Login.route) { inclusive = true }
+                                    }
+                                    return@LoginScreen
                                 }
+                                
+                                val db = FirebaseFirestore.getInstance()
+                                val uid = user.uid
+                                
+                                db.collection("users").document(uid).get()
+                                    .addOnSuccessListener { document ->
+                                        if (document.exists()) {
+                                            val role = document.getString("role") ?: "USER"
+                                            android.util.Log.d("Login", "User role: $role")
+                                            transactionViewModel.reloadAllData()
+                                            
+                                            if (role == "ADMIN") {
+                                                navController.navigate(Screen.Admin.route) {
+                                                    popUpTo(Screen.Login.route) { inclusive = true }
+                                                }
+                                            } else {
+                                                navController.navigate(Screen.Home.route) {
+                                                    popUpTo(Screen.Login.route) { inclusive = true }
+                                                }
+                                            }
+                                        } else {
+                                            // 2. Nếu CHƯA có dữ liệu, tạo bản ghi mặc định là USER
+                                            val userData = hashMapOf(
+                                                "uid" to uid,
+                                                "displayName" to (user.displayName ?: "Người dùng mới"),
+                                                "fullName" to (user.displayName ?: "Người dùng mới"),
+                                                "email" to (user.email ?: ""),
+                                                "role" to "USER", // Mặc định là USER
+                                                "isLocked" to false,
+                                                "joinDate" to System.currentTimeMillis()
+                                            )
+                                            db.collection("users").document(uid)
+                                                .set(userData, com.google.firebase.firestore.SetOptions.merge())
+                                                .addOnSuccessListener {
+                                                    transactionViewModel.reloadAllData()
+                                                    navController.navigate(Screen.Home.route) {
+                                                        popUpTo(Screen.Login.route) { inclusive = true }
+                                                    }
+                                                }
+                                        }
+                                    }
+                                    .addOnFailureListener { e ->
+                                        android.util.Log.e("Login", "Error: ${e.message}")
+                                        navController.navigate(Screen.Home.route) {
+                                            popUpTo(Screen.Login.route) { inclusive = true }
+                                        }
+                                    }
                             },
                             onNavigateToRegister = { navController.navigate(Screen.Register.route) }
                         )
@@ -166,12 +208,41 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     composable(Screen.Admin.route) {
-                        AdminScreen(onLogout = {
-                            FirebaseAuth.getInstance().signOut()
-                            navController.navigate(Screen.Login.route) {
-                                popUpTo(0) { inclusive = true }
+                        val user = FirebaseAuth.getInstance().currentUser
+                        var isAdmin by remember { mutableStateOf<Boolean?>(null) }
+                        
+                        LaunchedEffect(user?.uid) {
+                            if (user == null) {
+                                isAdmin = false
+                                return@LaunchedEffect
                             }
-                        })
+                            FirebaseFirestore.getInstance().collection("users").document(user.uid).get()
+                                .addOnSuccessListener { doc ->
+                                    isAdmin = doc.getString("role") == "ADMIN"
+                                }
+                                .addOnFailureListener {
+                                    isAdmin = false
+                                }
+                        }
+
+                        when (isAdmin) {
+                            true -> AdminScreen(onLogout = {
+                                FirebaseAuth.getInstance().signOut()
+                                navController.navigate(Screen.Login.route) {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            })
+                            false -> {
+                                LaunchedEffect(Unit) {
+                                    navController.navigate(Screen.Home.route) {
+                                        popUpTo(Screen.Admin.route) { inclusive = true }
+                                    }
+                                }
+                            }
+                            null -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator(color = PinkPrimary)
+                            }
+                        }
                     }
                     composable(Screen.GroupFund.route) {
                         MainScaffold(navController) { onOpenDrawer ->
@@ -238,6 +309,7 @@ fun MainScaffold(
     navController: androidx.navigation.NavHostController,
     content: @Composable (onOpenDrawer: () -> Unit) -> Unit
 ) {
+    val transactionViewModel: TransactionViewModel = viewModel()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -271,6 +343,9 @@ fun MainScaffold(
                             FirebaseFirestore.getInstance().collection("users").document(uid).get()
                                 .addOnSuccessListener { doc ->
                                     userRole = doc.getString("role") ?: "USER"
+                                }
+                                .addOnFailureListener {
+                                    userRole = "USER"
                                 }
                         }
                     }
@@ -362,6 +437,7 @@ fun MainScaffold(
                         color = Color.Red,
                         onClick = {
                             scope.launch { drawerState.close() }
+                            transactionViewModel.clearData()
                             FirebaseAuth.getInstance().signOut()
                             navController.navigate(Screen.Login.route) {
                                 popUpTo(0) { inclusive = true }

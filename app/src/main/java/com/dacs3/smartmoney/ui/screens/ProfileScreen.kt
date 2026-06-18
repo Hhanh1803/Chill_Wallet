@@ -165,7 +165,7 @@ fun ProfileScreen(
                                     )
                                     
                                     user?.uid?.let { uid ->
-                                        db.collection("users").document(uid).set(userData).await()
+                                        db.collection("users").document(uid).update(userData as Map<String, Any>).await()
                                     }
 
                                     snackbarHostState.showSnackbar(context.getString(R.string.update_success))

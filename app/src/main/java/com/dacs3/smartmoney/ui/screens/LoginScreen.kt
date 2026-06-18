@@ -16,6 +16,11 @@ import androidx.compose.ui.unit.sp
 import com.dacs3.smartmoney.ui.theme.*
 import com.google.firebase.auth.FirebaseAuth
 
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.dacs3.smartmoney.R
+import com.google.firebase.auth.FirebaseAuthException
+
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
@@ -27,6 +32,13 @@ fun LoginScreen(
     var isLoading by remember { mutableStateOf(false) }
 
     val auth = FirebaseAuth.getInstance()
+
+    // Khai báo các chuỗi thông báo lỗi từ resources
+    val errFillAll = stringResource(R.string.error_fill_all)
+    val errInvalidCredentials = stringResource(R.string.error_login_invalid_credentials)
+    val errUserNotFound = stringResource(R.string.error_login_user_not_found)
+    val errNetwork = stringResource(R.string.error_login_network)
+    val errUnknown = stringResource(R.string.error_login_unknown)
 
     Box(
         modifier = Modifier
@@ -94,7 +106,8 @@ fun LoginScreen(
                     text = errorMessage,
                     color = Color.Red,
                     modifier = Modifier.padding(top = 8.dp),
-                    fontSize = 14.sp
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
                 )
             }
 
@@ -106,7 +119,7 @@ fun LoginScreen(
                 Button(
                     onClick = {
                         if (email.isEmpty() || password.isEmpty()) {
-                            errorMessage = "Vui lòng nhập đầy đủ thông tin"
+                            errorMessage = errFillAll
                             return@Button
                         }
                         isLoading = true
@@ -116,7 +129,18 @@ fun LoginScreen(
                                 if (task.isSuccessful) {
                                     onLoginSuccess()
                                 } else {
-                                    errorMessage = "Sai tài khoản hoặc mật khẩu!"
+                                    val exception = task.exception
+                                    errorMessage = when (exception) {
+                                        is FirebaseAuthException -> {
+                                            when (exception.errorCode) {
+                                                "ERROR_INVALID_CREDENTIALS", "ERROR_WRONG_PASSWORD" -> errInvalidCredentials
+                                                "ERROR_USER_NOT_FOUND" -> errUserNotFound
+                                                "ERROR_NETWORK_REQUEST_FAILED" -> errNetwork
+                                                else -> exception.localizedMessage ?: errUnknown
+                                            }
+                                        }
+                                        else -> exception?.localizedMessage ?: errUnknown
+                                    }
                                 }
                             }
                     },

@@ -385,7 +385,15 @@ fun GroupTransactionItem(transaction: GroupTransaction) {
         
         val docRef = db.collection("users").document(transaction.createdBy)
         val listener = docRef.addSnapshotListener { snapshot, error ->
-            if (error == null && snapshot != null && snapshot.exists()) {
+            if (error != null) {
+                if (error.code == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                    android.util.Log.w("GroupTransactionItem", "Permission denied for user ${transaction.createdBy}")
+                } else {
+                    android.util.Log.e("GroupTransactionItem", "Error listening to user: ${error.message}")
+                }
+                return@addSnapshotListener
+            }
+            if (snapshot != null && snapshot.exists()) {
                 val name = snapshot.getString("displayName") ?: snapshot.getString("fullName")
                 val photo = snapshot.getString("photoUrl")
                 

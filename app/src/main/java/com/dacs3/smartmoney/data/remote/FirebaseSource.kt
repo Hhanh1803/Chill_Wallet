@@ -18,7 +18,35 @@ class FirebaseSource {
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
 
-    private fun getUid(): String? = auth.currentUser?.uid
+    suspend fun initializeUserIfNeeded(user: com.google.firebase.auth.FirebaseUser): Result<Boolean> {
+        val uid = user.uid
+        return try {
+            val doc = db.collection("users").document(uid).get().await()
+            if (!doc.exists()) {
+                val userData = hashMapOf(
+                    "uid" to uid,
+                    "displayName" to (user.displayName ?: "Người dùng mới"),
+                    "fullName" to (user.displayName ?: "Người dùng mới"),
+                    "email" to (user.email ?: ""),
+                    "role" to "USER",
+                    "isLocked" to false,
+                    "joinDate" to System.currentTimeMillis()
+                )
+                db.collection("users").document(uid).set(userData, com.google.firebase.firestore.SetOptions.merge()).await()
+            }
+            Result.success(true)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    private fun getUid(): String? {
+        val uid = auth.currentUser?.uid
+        if (uid == null) {
+            android.util.Log.w("FirebaseSource", "getUid: No current user authenticated")
+        }
+        return uid
+    }
 
     // --- CHỨC NĂNG QUẢN TRỊ (ADMIN) ---
 
@@ -26,7 +54,12 @@ class FirebaseSource {
         val subscription = db.collection("users")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    if (error.code == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        android.util.Log.w("FirebaseSource", "Permission denied for all users")
+                    } else {
+                        android.util.Log.e("FirebaseSource", "Error listening to users: ${error.message}")
+                    }
+                    trySend(emptyList())
                     return@addSnapshotListener
                 }
                 if (snapshot != null) {
@@ -99,6 +132,7 @@ class FirebaseSource {
             val groupsSnapshot = db.collection("groups").get().await()
             val groupsCount = groupsSnapshot.size()
             
+            // This requires the 'ADMIN' role and specific rules for collectionGroup
             val allTransactions = db.collectionGroup("transactions").get().await()
             val totalTransactions = allTransactions.size()
             
@@ -107,7 +141,7 @@ class FirebaseSource {
             val categoryCounts = mutableMapOf<String, Int>()
             
             allTransactions.documents.forEach { doc ->
-                val amount = doc.getDouble("amount") ?: 0.0
+                val amount = (doc.get("amount") as? Number)?.toDouble() ?: 0.0
                 val type = doc.getString("type") ?: "EXPENSE"
                 val catName = doc.getString("categoryName")
                 
@@ -121,7 +155,7 @@ class FirebaseSource {
             val mostUsedCategory = categoryCounts.maxByOrNull { it.value }?.key ?: "Chưa có"
             val mostUsedCategoryCount = categoryCounts.maxByOrNull { it.value }?.value ?: 0
             
-            val totalGroupBalance = groupsSnapshot.documents.sumOf { it.getDouble("balance") ?: 0.0 }
+            val totalGroupBalance = groupsSnapshot.documents.sumOf { (it.get("balance") as? Number)?.toDouble() ?: 0.0 }
             
             Result.success(mapOf(
                 "totalUsers" to usersCount,
@@ -134,12 +168,17 @@ class FirebaseSource {
                 "totalGroupBalance" to totalGroupBalance
             ))
         } catch (e: Exception) {
+            android.util.Log.e("FirebaseSource", "Error getting global stats: ${e.message}")
             Result.failure(e)
         }
     }
 
     fun getCombinedCategoriesRealtime(): Flow<List<Category>> = callbackFlow {
-        val uid = getUid() ?: run { trySend(emptyList()); close(); return@callbackFlow }
+        val uid = getUid() ?: run { 
+            trySend(emptyList())
+            close()
+            return@callbackFlow 
+        }
         
         val globalRef = db.collection("global_categories")
         val userRef = db.collection("users").document(uid).collection("categories")
@@ -152,13 +191,43 @@ class FirebaseSource {
             trySend(combined)
         }
 
-        val globalListener = globalRef.addSnapshotListener { snapshot, _ ->
-            globals = snapshot?.documents?.mapNotNull { it.toObject(Category::class.java)?.copy(id = it.id) } ?: emptyList()
+        val globalListener = globalRef.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                if (error.code == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                    android.util.Log.w("FirebaseSource", "Permission denied for global categories")
+                } else {
+                    android.util.Log.e("FirebaseSource", "Error listening to global categories: ${error.message}")
+                }
+                updateCombined()
+                return@addSnapshotListener
+            }
+            globals = snapshot?.documents?.mapNotNull { doc ->
+                try {
+                    doc.toObject(Category::class.java)?.copy(id = doc.id)
+                } catch (e: Exception) {
+                    null
+                }
+            } ?: emptyList()
             updateCombined()
         }
 
-        val userListener = userRef.addSnapshotListener { snapshot, _ ->
-            locals = snapshot?.documents?.mapNotNull { it.toObject(Category::class.java)?.copy(id = it.id) } ?: emptyList()
+        val userListener = userRef.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                if (error.code == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                    android.util.Log.w("FirebaseSource", "Permission denied for user categories")
+                } else {
+                    android.util.Log.e("FirebaseSource", "Error listening to user categories: ${error.message}")
+                }
+                updateCombined()
+                return@addSnapshotListener
+            }
+            locals = snapshot?.documents?.mapNotNull { doc ->
+                try {
+                    doc.toObject(Category::class.java)?.copy(id = doc.id)
+                } catch (e: Exception) {
+                    null
+                }
+            } ?: emptyList()
             updateCombined()
         }
 
@@ -172,15 +241,22 @@ class FirebaseSource {
         val subscription = db.collection("global_categories")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    if (error.code == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        android.util.Log.w("FirebaseSource", "Permission denied for global categories")
+                    } else {
+                        android.util.Log.e("FirebaseSource", "Error listening to global categories: ${error.message}")
+                    }
+                    trySend(emptyList())
                     return@addSnapshotListener
                 }
-                if (snapshot != null) {
-                    val items = snapshot.documents.mapNotNull { doc ->
+                val items = snapshot?.documents?.mapNotNull { doc ->
+                    try {
                         doc.toObject(Category::class.java)?.copy(id = doc.id)
+                    } catch (e: Exception) {
+                        null
                     }
-                    trySend(items)
-                }
+                } ?: emptyList()
+                trySend(items)
             }
         awaitClose { subscription.remove() }
     }
@@ -224,17 +300,33 @@ class FirebaseSource {
     }
 
     fun getAllTransactionsRealtime(): Flow<List<Transaction>> = callbackFlow {
-        val uid = getUid() ?: run { trySend(emptyList()); close(); return@callbackFlow }
+        val uid = getUid() ?: run { 
+            trySend(emptyList())
+            close()
+            return@callbackFlow 
+        }
         val subscription = db.collection("users").document(uid)
             .collection("transactions")
             .orderBy("date", Query.Direction.DESCENDING)
-            .addSnapshotListener { snapshot, _ ->
-                snapshot?.let {
-                    val items = it.documents.mapNotNull { doc ->
-                        doc.toObject(Transaction::class.java)?.copy(transactionId = doc.id)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    if (error.code == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        android.util.Log.w("FirebaseSource", "Permission denied for transactions")
+                    } else {
+                        android.util.Log.e("FirebaseSource", "Error listening to transactions: ${error.message}")
                     }
-                    trySend(items)
+                    trySend(emptyList())
+                    return@addSnapshotListener
                 }
+                val items = snapshot?.documents?.mapNotNull { doc ->
+                    try {
+                        doc.toObject(Transaction::class.java)?.copy(transactionId = doc.id)
+                    } catch (e: Exception) {
+                        android.util.Log.e("FirebaseSource", "Error parsing transaction ${doc.id}: ${e.message}")
+                        null
+                    }
+                } ?: emptyList()
+                trySend(items)
             }
         awaitClose { subscription.remove() }
     }
@@ -260,15 +352,31 @@ class FirebaseSource {
     }
 
     fun getBudgetsRealtime(): Flow<List<Budget>> = callbackFlow {
-        val uid = getUid() ?: run { trySend(emptyList()); close(); return@callbackFlow }
+        val uid = getUid() ?: run { 
+            trySend(emptyList())
+            close()
+            return@callbackFlow 
+        }
         val subscription = db.collection("users").document(uid).collection("budgets")
-            .addSnapshotListener { snapshot, _ ->
-                snapshot?.let {
-                    val items = it.documents.mapNotNull { doc ->
-                        doc.toObject(Budget::class.java)?.copy(budgetId = doc.id)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    if (error.code == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        android.util.Log.w("FirebaseSource", "Permission denied for budgets")
+                    } else {
+                        android.util.Log.e("FirebaseSource", "Error listening to budgets: ${error.message}")
                     }
-                    trySend(items)
+                    trySend(emptyList())
+                    return@addSnapshotListener
                 }
+                val items = snapshot?.documents?.mapNotNull { doc ->
+                    try {
+                        doc.toObject(Budget::class.java)?.copy(budgetId = doc.id)
+                    } catch (e: Exception) {
+                        android.util.Log.e("FirebaseSource", "Error parsing budget ${doc.id}: ${e.message}")
+                        null
+                    }
+                } ?: emptyList()
+                trySend(items)
             }
         awaitClose { subscription.remove() }
     }
@@ -288,15 +396,30 @@ class FirebaseSource {
     }
 
     fun getCategoriesRealtime(): Flow<List<Category>> = callbackFlow {
-        val uid = getUid() ?: run { trySend(emptyList()); close(); return@callbackFlow }
+        val uid = getUid() ?: run { 
+            trySend(emptyList())
+            close()
+            return@callbackFlow 
+        }
         val subscription = db.collection("users").document(uid).collection("categories")
-            .addSnapshotListener { snapshot, _ ->
-                snapshot?.let {
-                    val items = it.documents.mapNotNull { doc ->
-                        doc.toObject(Category::class.java)?.copy(id = doc.id)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    if (error.code == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        android.util.Log.w("FirebaseSource", "Permission denied for categories")
+                    } else {
+                        android.util.Log.e("FirebaseSource", "Error listening to categories: ${error.message}")
                     }
-                    trySend(items)
+                    trySend(emptyList())
+                    return@addSnapshotListener
                 }
+                val items = snapshot?.documents?.mapNotNull { doc ->
+                    try {
+                        doc.toObject(Category::class.java)?.copy(id = doc.id)
+                    } catch (e: Exception) {
+                        null
+                    }
+                } ?: emptyList()
+                trySend(items)
             }
         awaitClose { subscription.remove() }
     }
@@ -352,22 +475,46 @@ class FirebaseSource {
     }
 
     fun getJoinedGroupsRealtime(): Flow<List<GroupFund>> = callbackFlow {
-        val uid = getUid() ?: run { trySend(emptyList()); close(); return@callbackFlow }
+        val uid = getUid() ?: run { 
+            trySend(emptyList())
+            close()
+            return@callbackFlow 
+        }
         val subscription = db.collection("groups").whereArrayContains("memberUids", uid)
-            .addSnapshotListener { snapshot, _ ->
-                snapshot?.let {
-                    val items = it.documents.mapNotNull { doc ->
-                        doc.toObject(GroupFund::class.java)?.copy(groupId = doc.id)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    if (error.code == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        android.util.Log.w("FirebaseSource", "Permission denied for joined groups")
+                    } else {
+                        android.util.Log.e("FirebaseSource", "Error listening to joined groups: ${error.message}")
                     }
-                    trySend(items)
+                    trySend(emptyList())
+                    return@addSnapshotListener
                 }
+                val items = snapshot?.documents?.mapNotNull { doc ->
+                    try {
+                        doc.toObject(GroupFund::class.java)?.copy(groupId = doc.id)
+                    } catch (e: Exception) {
+                        null
+                    }
+                } ?: emptyList()
+                trySend(items)
             }
         awaitClose { subscription.remove() }
     }
 
     fun getGroupRealtime(groupId: String): Flow<GroupFund?> = callbackFlow {
         val subscription = db.collection("groups").document(groupId)
-            .addSnapshotListener { snapshot, _ ->
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    if (error.code == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        android.util.Log.w("FirebaseSource", "Permission denied for group $groupId")
+                    } else {
+                        android.util.Log.e("FirebaseSource", "Error listening to group $groupId: ${error.message}")
+                    }
+                    trySend(null)
+                    return@addSnapshotListener
+                }
                 if (snapshot != null && snapshot.exists()) {
                     trySend(snapshot.toObject(GroupFund::class.java)?.copy(groupId = snapshot.id))
                 } else {
@@ -381,39 +528,42 @@ class FirebaseSource {
         val subscription = db.collection("groups").document(groupId).collection("transactions")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    if (error.code == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        android.util.Log.w("FirebaseSource", "Permission denied for group transactions in $groupId")
+                    } else {
+                        android.util.Log.e("FirebaseSource", "Error listening to group transactions: ${error.message}")
+                    }
+                    trySend(emptyList())
                     return@addSnapshotListener
                 }
-                snapshot?.let {
-                    val items = it.documents.map { doc ->
-                        try {
-                            val data = doc.data
-                            val rawDate = data?.get("date")
-                            val dateVal = when (rawDate) {
-                                is Long -> rawDate
-                                is Number -> rawDate.toLong()
-                                is com.google.firebase.Timestamp -> rawDate.seconds * 1000
-                                is String -> rawDate.toLongOrNull() ?: System.currentTimeMillis()
-                                else -> System.currentTimeMillis()
-                            }
-                            
-                            GroupTransaction(
-                                transactionId = doc.id,
-                                amount = (data?.get("amount") as? Number)?.toDouble() ?: 0.0,
-                                categoryName = data?.get("categoryName") as? String ?: "Khác",
-                                date = dateVal,
-                                note = data?.get("note") as? String ?: "",
-                                type = data?.get("type") as? String ?: "EXPENSE",
-                                createdBy = data?.get("createdBy") as? String ?: "",
-                                creatorName = data?.get("creatorName") as? String ?: "Thành viên",
-                                creatorPhotoUrl = data?.get("creatorPhotoUrl") as? String ?: ""
-                            )
-                        } catch (e: Exception) {
-                            GroupTransaction(transactionId = doc.id, note = "Lỗi dữ liệu", date = System.currentTimeMillis())
+                val items = snapshot?.documents?.map { doc ->
+                    try {
+                        val data = doc.data
+                        val rawDate = data?.get("date")
+                        val dateVal = when (rawDate) {
+                            is Long -> rawDate
+                            is Number -> rawDate.toLong()
+                            is com.google.firebase.Timestamp -> rawDate.seconds * 1000
+                            is String -> rawDate.toLongOrNull() ?: System.currentTimeMillis()
+                            else -> System.currentTimeMillis()
                         }
+                        
+                        GroupTransaction(
+                            transactionId = doc.id,
+                            amount = (data?.get("amount") as? Number)?.toDouble() ?: 0.0,
+                            categoryName = data?.get("categoryName") as? String ?: "Khác",
+                            date = dateVal,
+                            note = data?.get("note") as? String ?: "",
+                            type = data?.get("type") as? String ?: "EXPENSE",
+                            createdBy = data?.get("createdBy") as? String ?: "",
+                            creatorName = data?.get("creatorName") as? String ?: "Thành viên",
+                            creatorPhotoUrl = data?.get("creatorPhotoUrl") as? String ?: ""
+                        )
+                    } catch (e: Exception) {
+                        GroupTransaction(transactionId = doc.id, note = "Lỗi dữ liệu", date = System.currentTimeMillis())
                     }
-                    trySend(items.sortedByDescending { it.date })
-                }
+                } ?: emptyList()
+                trySend(items.sortedByDescending { it.date })
             }
         awaitClose { subscription.remove() }
     }
@@ -451,7 +601,16 @@ class FirebaseSource {
         val subscription = db.collection("users")
             .whereIn(com.google.firebase.firestore.FieldPath.documentId(), memberUids)
             .addSnapshotListener { snapshot, error ->
-                if (error == null && snapshot != null) {
+                if (error != null) {
+                    if (error.code == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        android.util.Log.w("FirebaseSource", "Permission denied for group members")
+                    } else {
+                        android.util.Log.e("FirebaseSource", "Error listening to group members: ${error.message}")
+                    }
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
                     val users = snapshot.toObjects(User::class.java)
                     trySend(users)
                 }
@@ -462,10 +621,23 @@ class FirebaseSource {
     fun getAllGroupsRealtime(): Flow<List<com.dacs3.smartmoney.data.model.GroupFund>> = callbackFlow {
         val subscription = db.collection("groups")
             .addSnapshotListener { snapshot, error ->
-                if (error == null && snapshot != null) {
-                    val groups = snapshot.toObjects(com.dacs3.smartmoney.data.model.GroupFund::class.java)
-                    trySend(groups)
+                if (error != null) {
+                    if (error.code == com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        android.util.Log.w("FirebaseSource", "Permission denied for all groups (Admin check)")
+                    } else {
+                        android.util.Log.e("FirebaseSource", "Error listening to all groups: ${error.message}")
+                    }
+                    trySend(emptyList())
+                    return@addSnapshotListener
                 }
+                val groups = snapshot?.documents?.mapNotNull { doc ->
+                    try {
+                        doc.toObject(com.dacs3.smartmoney.data.model.GroupFund::class.java)?.copy(groupId = doc.id)
+                    } catch (e: Exception) {
+                        null
+                    }
+                } ?: emptyList()
+                trySend(groups)
             }
         awaitClose { subscription.remove() }
     }
